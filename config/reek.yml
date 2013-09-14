@@ -1,6 +1,6 @@
 ---
 Attribute:
-  enabled: true
+  enabled: false
   exclude: []
 BooleanParameter:
   enabled: true
@@ -49,11 +49,11 @@ NilCheck:
 RepeatedConditional:
   enabled: true
   exclude: []
-  max_ifs: 1
+  max_ifs: 2
 TooManyInstanceVariables:
   enabled: true
   exclude: []
-  max_instance_variables: 3
+  max_instance_variables: 5
 TooManyMethods:
   enabled: true
   exclude: []

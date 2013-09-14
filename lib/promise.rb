@@ -15,18 +15,32 @@ class Promise
   end
 
   def fulfill(value)
-    if @state == :pending
-      @state = :fulfilled
-      @value = value.freeze
+    if pending?
+      fulfill!(value)
       @on_fulfill.call(value) if @on_fulfill
     end
   end
 
   def reject(reason)
-    if @state == :pending
-      @state = :rejected
-      @reason = reason.freeze
+    if pending?
+      reject!(reason)
       @on_reject.call(reason) if @on_reject
     end
+  end
+
+  def pending?
+    @state == :pending
+  end
+
+  private
+
+  def fulfill!(value)
+    @state = :fulfilled
+    @value = value.freeze
+  end
+
+  def reject!(reason)
+    @state = :rejected
+    @reason = reason.freeze
   end
 end
