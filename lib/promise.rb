@@ -1,7 +1,7 @@
 require 'promise/version'
 
 class Promise
-  attr_reader :state
+  attr_reader :state, :value, :reason
 
   def initialize
     @state = :pending
@@ -15,11 +15,16 @@ class Promise
   def fulfill(value)
     if @state == :pending
       @state = :fulfilled
+      @value = value.freeze
       @on_fulfill.call(value) if @on_fulfill
     end
   end
 
   def reject(reason)
-    @on_reject.call(reason) if @on_reject
+    if @state == :pending
+      @state = :rejected
+      @reason = reason.freeze
+      @on_reject.call(reason) if @on_reject
+    end
   end
 end

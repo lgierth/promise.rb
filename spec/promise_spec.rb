@@ -4,7 +4,57 @@ describe Promise, '#then' do
   subject { Promise.new }
 
   let(:value) { double('value') }
+  let(:other_value) { double('other_value') }
   let(:reason) { double('reason') }
+  let(:other_reason) { double('other_reason') }
+
+  describe '3.1.1 pending' do
+    it 'transitions to fulfilled' do
+      subject.fulfill(value)
+      expect(subject.state).to eq(:fulfilled)
+    end
+
+    it 'transitions to rejected' do
+      subject.reject(reason)
+      expect(subject.state).to eq(:rejected)
+    end
+  end
+
+  describe '3.1.2 fulfilled' do
+    it 'does not transition to other states' do
+      subject.fulfill(value)
+      subject.reject(reason)
+      expect(subject.state).to eq(:fulfilled)
+    end
+
+    it 'has an immutable value' do
+      subject.fulfill(value)
+      expect(subject.value).to eq(value)
+
+      subject.fulfill(other_value)
+      expect(subject.value).to eq(value)
+
+      expect(subject.value).to be_frozen
+    end
+  end
+
+  describe '3.1.3 fulfilled' do
+    it 'does not transition to other states' do
+      subject.reject(reason)
+      subject.fulfill(value)
+      expect(subject.state).to eq(:rejected)
+    end
+
+    it 'has an immutable value' do
+      subject.reject(reason)
+      expect(subject.reason).to eq(reason)
+
+      subject.reject(other_reason)
+      expect(subject.reason).to eq(reason)
+
+      expect(subject.reason).to be_frozen
+    end
+  end
 
   describe '3.2.1' do
     specify 'on_fulfill is optional' do
