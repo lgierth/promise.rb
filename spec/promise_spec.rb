@@ -110,7 +110,7 @@ describe Promise do
       end
     end
 
-    describe '3.2.2 on_reject' do
+    describe '3.2.3 on_reject' do
       it 'is called after promise is rejected' do
         state = nil
         subject.then(nil, proc { |_| state = subject.state })
@@ -142,6 +142,12 @@ describe Promise do
 
         subject.fulfill(value)
         expect(called).to eq(false)
+      end
+    end
+
+    describe '3.2.4' do
+      it 'returns before on_fulfill or on_reject is called' do
+        pending
       end
     end
   end
