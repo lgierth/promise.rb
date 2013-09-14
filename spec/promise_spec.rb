@@ -150,5 +150,39 @@ describe Promise do
         pending
       end
     end
+
+    describe '3.2.5' do
+      it 'calls multiple on_fulfill callbacks in order of definition' do
+        order = []
+        on_fulfill = proc do |i, val|
+          order << i
+          expect(val).to eq(value)
+        end
+
+        subject.then(on_fulfill.curry[1])
+        subject.then(on_fulfill.curry[2])
+
+        subject.fulfill(value)
+        subject.then(on_fulfill.curry[3])
+
+        expect(order).to eq([1, 2, 3])
+      end
+
+      it 'calls multiple on_reject callbacks in order of definition' do
+        order = []
+        on_reject = proc do |i, reas|
+          order << i
+          expect(reas).to eq(reason)
+        end
+
+        subject.then(nil, on_reject.curry[1])
+        subject.then(nil, on_reject.curry[2])
+
+        subject.reject(reason)
+        subject.then(nil, on_reject.curry[3])
+
+        expect(order).to eq([1, 2, 3])
+      end
+    end
   end
 end

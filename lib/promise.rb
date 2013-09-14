@@ -7,29 +7,43 @@ class Promise
 
   def initialize
     @state = :pending
+    @callbacks = []
   end
 
   def then(on_fulfill = nil, on_reject = nil)
-    @on_fulfill = on_fulfill
-    @on_reject = on_reject
+    if fulfilled?
+      on_fulfill.call(value)
+    elsif rejected?
+      on_reject.call(reason)
+    else
+      @callbacks << [on_fulfill, on_reject]
+    end
   end
 
   def fulfill(value)
     if pending?
       fulfill!(value)
-      @on_fulfill.call(value) if @on_fulfill
+      @callbacks.each { |(cb, _)| cb.call(value) if cb }
     end
   end
 
   def reject(reason)
     if pending?
       reject!(reason)
-      @on_reject.call(reason) if @on_reject
+      @callbacks.each { |(_, cb)| cb.call(reason) if cb }
     end
   end
 
   def pending?
     @state == :pending
+  end
+
+  def fulfilled?
+    @state == :fulfilled
+  end
+
+  def rejected?
+    @state == :rejected
   end
 
   private
