@@ -102,4 +102,39 @@ describe Promise, '#then' do
       expect(called).to eq(false)
     end
   end
+
+  describe '3.2.2' do
+    specify 'on_reject is called after promise is rejected' do
+      state = nil
+      subject.then(nil, proc { |_| state = subject.state })
+
+      subject.reject(reason)
+      expect(state).to eq(:rejected)
+    end
+
+    specify 'on_reject is called with rejection reason' do
+      result = nil
+      subject.then(nil, proc { |reas| result = reas })
+
+      subject.reject(reason)
+      expect(result).to eq(reason)
+    end
+
+    specify 'on_reject is called not more than once' do
+      called = 0
+      subject.then(nil, proc { |_| called += 1 })
+
+      subject.reject(reason)
+      subject.reject(reason)
+      expect(called).to eq(1)
+    end
+
+    specify 'on_reject is not called if on_fulfill has been called' do
+      called = false
+      subject.then(nil, proc { |_| called = true })
+
+      subject.fulfill(value)
+      expect(called).to eq(false)
+    end
+  end
 end
