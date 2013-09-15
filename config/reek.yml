@@ -62,7 +62,7 @@ TooManyStatements:
   enabled: true
   exclude:
   - each
-  max_statements: 2
+  max_statements: 3
 UncommunicativeMethodName:
   enabled: true
   exclude: []
