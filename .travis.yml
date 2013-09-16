@@ -1,5 +1,5 @@
 language: ruby
 rvm:
   - 1.9.3
-before_script: git rev-parse --abbrev-ref HEAD
+before_script: git config -l
 script: bundle exec rake ci -t
