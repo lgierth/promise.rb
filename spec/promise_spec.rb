@@ -41,14 +41,14 @@ describe Promise do
       end
     end
 
-    describe '3.1.3 fulfilled' do
+    describe '3.1.3 rejected' do
       it 'does not transition to other states' do
         subject.reject(reason)
         subject.fulfill(value)
         expect(subject.state).to eq(:rejected)
       end
 
-      it 'has an immutable value' do
+      it 'has an immutable reason' do
         subject.reject(reason)
         expect(subject.reason).to eq(reason)
 
