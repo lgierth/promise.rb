@@ -11,6 +11,10 @@ class Promise
   end
 
   def then(on_fulfill = nil, on_reject = nil)
+    promise2 = Promise.new
+    on_fulfill = link_to_next(on_fulfill, promise2) if on_fulfill
+    on_reject = link_to_next(on_reject, promise2) if on_reject
+
     if fulfilled?
       on_fulfill.call(value)
     elsif rejected?
@@ -18,6 +22,8 @@ class Promise
     else
       @callbacks << [on_fulfill, on_reject]
     end
+
+    promise2
   end
 
   def fulfill(value)
@@ -56,5 +62,22 @@ class Promise
   def reject!(reason)
     @state = :rejected
     @reason = reason.freeze
+  end
+
+  def link_to_next(callback, promise)
+    proc { |arg| call_with_next(callback, arg, promise) }
+  end
+
+  def call_with_next(callback, arg, promise)
+    begin
+      result = callback.call(arg)
+    rescue => error
+    end
+
+    if error
+      promise.reject(error)
+    else
+      promise.fulfill(result)
+    end
   end
 end
