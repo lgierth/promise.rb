@@ -23,27 +23,35 @@ class Promise
   end
 
   def then(on_fulfill = nil, on_reject = nil)
-    callback = [on_fulfill, on_reject, Promise.new]
-
+    callback = build_callback(on_fulfill, on_reject)
     add_callback(callback)
+
     callback[2]
   end
 
   def fulfill(value)
     if pending?
       fulfill!(value)
-      @callbacks.each { |callback| dispatch(callback) }
+      @callbacks.each { |callback| dispatch_fulfill(callback) }
     end
   end
 
   def reject(reason)
     if pending?
       reject!(reason)
-      @callbacks.each { |callback| dispatch(callback) }
+      @callbacks.each { |callback| dispatch_reject(callback) }
     end
   end
 
   private
+
+  def build_callback(on_fulfill, on_reject)
+    [on_fulfill || default_block, on_reject || default_block, Promise.new]
+  end
+
+  def default_block
+    proc { |arg| arg }
+  end
 
   def add_callback(callback)
     @callbacks << callback
