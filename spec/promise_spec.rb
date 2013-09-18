@@ -188,12 +188,12 @@ describe Promise do
     describe '3.2.6' do
       let(:error) { StandardError.new }
 
-      it 'returns a new promise' do
+      it 'returns promise2' do
         expect(subject.then).to be_a(Promise)
         expect(subject.then).not_to eq(subject)
       end
 
-      it 'fulfills returned promise with value returned by on_fulfill' do
+      it 'fulfills promise2 with value returned by on_fulfill' do
         promise2 = subject.then(proc { |_| other_value })
         subject.fulfill(value)
 
@@ -201,7 +201,7 @@ describe Promise do
         expect(promise2.value).to eq(other_value)
       end
 
-      it 'fulfills returned promise with value returned by on_reject' do
+      it 'fulfills promise2 with value returned by on_reject' do
         promise2 = subject.then(nil, proc { |_| other_value })
         subject.reject(reason)
 
@@ -209,7 +209,7 @@ describe Promise do
         expect(promise2.value).to eq(other_value)
       end
 
-      it 'rejects returned promise with error raised by on_fulfill' do
+      it 'rejects promise2 with error raised by on_fulfill' do
         promise2 = subject.then(proc { |_| raise error })
         expect { subject.fulfill(value) }.to raise_error(error)
 
@@ -217,7 +217,7 @@ describe Promise do
         expect(promise2.reason).to eq(error)
       end
 
-      it 'rejects returned promise with error raised by on_reject' do
+      it 'rejects promise2 with error raised by on_reject' do
         promise2 = subject.then(nil, proc { |_| raise error })
         expect { subject.reject(reason) }.to raise_error(error)
 
