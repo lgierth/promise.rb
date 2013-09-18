@@ -22,7 +22,7 @@ DuplicateMethodCall:
   max_calls: 1
   allow_calls: []
 FeatureEnvy:
-  enabled: true
+  enabled: false
   exclude: []
 IrresponsibleModule:
   enabled: true
@@ -30,7 +30,7 @@ IrresponsibleModule:
 LongParameterList:
   enabled: true
   exclude: []
-  max_params: 2
+  max_params: 3
   overrides:
     initialize:
       max_params: 3
@@ -57,7 +57,7 @@ TooManyInstanceVariables:
 TooManyMethods:
   enabled: true
   exclude: []
-  max_methods: 10
+  max_methods: 14
 TooManyStatements:
   enabled: true
   exclude:
@@ -98,6 +98,6 @@ UnusedParameters:
   enabled: true
   exclude: []
 UtilityFunction:
-  enabled: true
+  enabled: false
   exclude: []
   max_helper_calls: 0

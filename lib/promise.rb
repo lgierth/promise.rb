@@ -10,36 +10,6 @@ class Promise
     @callbacks = []
   end
 
-  def then(on_fulfill = nil, on_reject = nil)
-    promise2 = Promise.new
-    on_fulfill = link_to_next(on_fulfill, promise2) if on_fulfill
-    on_reject = link_to_next(on_reject, promise2) if on_reject
-
-    if fulfilled?
-      on_fulfill.call(value)
-    elsif rejected?
-      on_reject.call(reason)
-    else
-      @callbacks << [on_fulfill, on_reject]
-    end
-
-    promise2
-  end
-
-  def fulfill(value)
-    if pending?
-      fulfill!(value)
-      @callbacks.each { |(cb, _)| cb.call(value) if cb }
-    end
-  end
-
-  def reject(reason)
-    if pending?
-      reject!(reason)
-      @callbacks.each { |(_, cb)| cb.call(reason) if cb }
-    end
-  end
-
   def pending?
     @state == :pending
   end
@@ -52,7 +22,33 @@ class Promise
     @state == :rejected
   end
 
+  def then(on_fulfill = nil, on_reject = nil)
+    callback = [on_fulfill, on_reject, Promise.new]
+
+    add_callback(callback)
+    callback[2]
+  end
+
+  def fulfill(value)
+    if pending?
+      fulfill!(value)
+      @callbacks.each { |callback| dispatch(callback) }
+    end
+  end
+
+  def reject(reason)
+    if pending?
+      reject!(reason)
+      @callbacks.each { |callback| dispatch(callback) }
+    end
+  end
+
   private
+
+  def add_callback(callback)
+    @callbacks << callback
+    dispatch(callback)
+  end
 
   def fulfill!(value)
     @state = :fulfilled
@@ -64,20 +60,29 @@ class Promise
     @reason = reason.freeze
   end
 
-  def link_to_next(callback, promise)
-    proc { |arg| call_with_next(callback, arg, promise) }
+  def dispatch(callback)
+    if fulfilled?
+      dispatch_fulfill(callback)
+    elsif rejected?
+      dispatch_reject(callback)
+    end
   end
 
-  def call_with_next(callback, arg, promise)
+  def dispatch_fulfill(callback)
+    run(callback[0], value, callback[2])
+  end
+
+  def dispatch_reject(callback)
+    run(callback[1], reason, callback[2])
+  end
+
+  def run(block, arg, next_promise)
     begin
-      result = callback.call(arg)
+      result = block.call(arg)
     rescue => error
+      next_promise.reject(error)
     end
 
-    if error
-      promise.reject(error)
-    else
-      promise.fulfill(result)
-    end
+    next_promise.fulfill(result) if result
   end
 end
