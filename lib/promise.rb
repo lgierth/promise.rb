@@ -81,8 +81,9 @@ class Promise
       result = block.call(arg)
     rescue => error
       next_promise.reject(error)
+      raise error
     end
 
-    next_promise.fulfill(result) if result
+    next_promise.fulfill(result)
   end
 end
