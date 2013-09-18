@@ -273,6 +273,28 @@ describe Promise do
           expect(promise2.reason).to eq(other_reason)
         end
       end
+
+      describe 'without on_fulfill' do
+        it 'fulfill promise2 with fulfillment value' do
+          promise2 = subject.then
+          subject.fulfill(value)
+
+          expect(promise2).to be_fulfilled
+          expect(promise2.value).to eq(value)
+        end
+      end
+
+      describe 'without on_reject' do
+        it 'rejects promise2 with rejection reason' do
+          promise2 = subject.then
+          subject.reject(reason)
+
+          ap promise2
+
+          expect(promise2).to be_rejected
+          expect(promise2.reason).to eq(reason)
+        end
+      end
     end
   end
 end

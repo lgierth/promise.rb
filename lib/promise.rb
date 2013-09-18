@@ -23,7 +23,7 @@ class Promise
   end
 
   def then(on_fulfill = nil, on_reject = nil)
-    callback = build_callback(on_fulfill, on_reject)
+    callback = [on_fulfill, on_reject, Promise.new]
     add_callback(callback)
 
     callback[2]
@@ -44,14 +44,6 @@ class Promise
   end
 
   private
-
-  def build_callback(on_fulfill, on_reject)
-    [on_fulfill || default_block, on_reject || default_block, Promise.new]
-  end
-
-  def default_block
-    proc { |arg| arg }
-  end
 
   def add_callback(callback)
     @callbacks << callback
@@ -85,14 +77,21 @@ class Promise
   end
 
   def run(block, arg, next_promise)
-    begin
-      result = block.call(arg)
-    rescue => error
-      next_promise.reject(error)
-      raise error
+    if block
+      result = execute(block, arg, next_promise)
+      handle_result(result, next_promise)
+    elsif fulfilled?
+      handle_result(arg, next_promise)
+    elsif rejected?
+      next_promise.reject(arg)
     end
+  end
 
-    handle_result(result, next_promise)
+  def execute(block, arg, next_promise)
+    result = block.call(arg) if block
+  rescue => error
+    next_promise.reject(error)
+    raise error
   end
 
   def handle_result(result, next_promise)
