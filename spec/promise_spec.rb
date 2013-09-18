@@ -187,6 +187,7 @@ describe Promise do
 
     describe '3.2.6' do
       let(:error) { StandardError.new }
+      let(:returned_promise) { Promise.new }
 
       it 'returns promise2' do
         expect(subject.then).to be_a(Promise)
@@ -223,6 +224,54 @@ describe Promise do
 
         expect(promise2).to be_rejected
         expect(promise2.reason).to eq(error)
+      end
+
+      describe 'on_fulfill returns promise' do
+        it 'makes promise2 assume fulfilled state of returned promise' do
+          promise2 = subject.then(proc { |_| returned_promise })
+
+          subject.fulfill(value)
+          expect(promise2).to be_pending
+
+          returned_promise.fulfill(other_value)
+          expect(promise2).to be_fulfilled
+          expect(promise2.value).to eq(other_value)
+        end
+
+        it 'makes promise2 assume rejected state of returned promise' do
+          promise2 = subject.then(proc { |_| returned_promise })
+
+          subject.fulfill(value)
+          expect(promise2).to be_pending
+
+          returned_promise.reject(other_reason)
+          expect(promise2).to be_rejected
+          expect(promise2.reason).to eq(other_reason)
+        end
+      end
+
+      describe 'on_reject returns promise' do
+        it 'makes promise2 assume fulfilled state of returned promise' do
+          promise2 = subject.then(nil, proc { |_| returned_promise })
+
+          subject.reject(reason)
+          expect(promise2).to be_pending
+
+          returned_promise.fulfill(other_value)
+          expect(promise2).to be_fulfilled
+          expect(promise2.value).to eq(other_value)
+        end
+
+        it 'makes promise2 assume rejected state of returned promise' do
+          promise2 = subject.then(nil, proc { |_| returned_promise })
+
+          subject.reject(reason)
+          expect(promise2).to be_pending
+
+          returned_promise.reject(other_reason)
+          expect(promise2).to be_rejected
+          expect(promise2.reason).to eq(other_reason)
+        end
       end
     end
   end

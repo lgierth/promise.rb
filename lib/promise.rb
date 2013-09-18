@@ -92,6 +92,21 @@ class Promise
       raise error
     end
 
-    next_promise.fulfill(result)
+    handle_result(result, next_promise)
+  end
+
+  def handle_result(result, next_promise)
+    if Promise === result
+      assume_state(result, next_promise)
+    else
+      next_promise.fulfill(result)
+    end
+  end
+
+  def assume_state(returned_promise, next_promise)
+    on_fulfill = next_promise.method(:fulfill)
+    on_reject = next_promise.method(:reject)
+
+    returned_promise.then(on_fulfill, on_reject)
   end
 end
