@@ -289,8 +289,6 @@ describe Promise do
           promise2 = subject.then
           subject.reject(reason)
 
-          ap promise2
-
           expect(promise2).to be_rejected
           expect(promise2.reason).to eq(reason)
         end

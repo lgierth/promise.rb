@@ -7,7 +7,8 @@ class Promise
 
   def initialize
     @state = :pending
-    @callbacks = []
+    @on_fulfill = []
+    @on_reject = []
   end
 
   def pending?
@@ -23,89 +24,103 @@ class Promise
   end
 
   def then(on_fulfill = nil, on_reject = nil)
-    callback = [on_fulfill, on_reject, Promise.new]
-    add_callback(callback)
+    next_promise = add_callbacks(on_fulfill, on_reject)
 
-    callback[2]
+    maybe_dispatch(@on_fulfill.last, @on_reject.last)
+    next_promise
   end
 
   def fulfill(value)
-    if pending?
-      fulfill!(value)
-      @callbacks.each { |callback| dispatch_fulfill(callback) }
+    dispatch(@on_fulfill, value) do
+      @state = :fulfilled
+      @value = value
     end
   end
 
   def reject(reason)
-    if pending?
-      reject!(reason)
-      @callbacks.each { |callback| dispatch_reject(callback) }
+    dispatch(@on_reject, reason) do
+      @state = :rejected
+      @reason = reason
     end
   end
 
   private
 
-  def add_callback(callback)
-    @callbacks << callback
-    dispatch(callback)
+  def add_callbacks(on_fulfill, on_reject)
+    next_promise = Promise.new
+    @on_fulfill << FulfillCallback.new(on_fulfill, next_promise)
+    @on_reject << RejectCallback.new(on_reject, next_promise)
+    next_promise
   end
 
-  def fulfill!(value)
-    @state = :fulfilled
-    @value = value.freeze
+  def dispatch(callbacks, arg)
+    if pending?
+      yield
+      arg.freeze
+      callbacks.each { |callback| callback.dispatch(arg) }
+    end
   end
 
-  def reject!(reason)
-    @state = :rejected
-    @reason = reason.freeze
-  end
-
-  def dispatch(callback)
+  def maybe_dispatch(fulfill_callback, reject_callback)
     if fulfilled?
-      dispatch_fulfill(callback)
-    elsif rejected?
-      dispatch_reject(callback)
+      fulfill_callback.dispatch(value)
+    end
+
+    if rejected?
+      reject_callback.dispatch(reason)
     end
   end
 
-  def dispatch_fulfill(callback)
-    run(callback[0], value, callback[2])
-  end
+  class Callback
+    def initialize(block, next_promise)
+      @block = block
+      @next_promise = next_promise
+    end
 
-  def dispatch_reject(callback)
-    run(callback[1], reason, callback[2])
-  end
+    private
 
-  def run(block, arg, next_promise)
-    if block
-      result = execute(block, arg, next_promise)
-      handle_result(result, next_promise)
-    elsif fulfilled?
-      handle_result(arg, next_promise)
-    elsif rejected?
-      next_promise.reject(arg)
+    def execute(value)
+      @block.call(value)
+    rescue => error
+      @next_promise.reject(error)
+      raise error
+    end
+
+    def handle_result(result)
+      if Promise === result
+        assume_state(result)
+      else
+        @next_promise.fulfill(result)
+      end
+    end
+
+    def assume_state(returned_promise)
+      on_fulfill = @next_promise.method(:fulfill)
+      on_reject = @next_promise.method(:reject)
+
+      returned_promise.then(on_fulfill, on_reject)
     end
   end
 
-  def execute(block, arg, next_promise)
-    result = block.call(arg) if block
-  rescue => error
-    next_promise.reject(error)
-    raise error
-  end
-
-  def handle_result(result, next_promise)
-    if Promise === result
-      assume_state(result, next_promise)
-    else
-      next_promise.fulfill(result)
+  class FulfillCallback < Callback
+    def dispatch(value)
+      if @block
+        result = execute(value)
+        handle_result(result)
+      else
+        handle_result(value)
+      end
     end
   end
 
-  def assume_state(returned_promise, next_promise)
-    on_fulfill = next_promise.method(:fulfill)
-    on_reject = next_promise.method(:reject)
-
-    returned_promise.then(on_fulfill, on_reject)
+  class RejectCallback < Callback
+    def dispatch(reason)
+      if @block
+        result = execute(reason)
+        handle_result(result)
+      else
+        @next_promise.reject(reason)
+      end
+    end
   end
 end
