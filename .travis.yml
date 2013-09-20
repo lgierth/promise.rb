@@ -1,5 +1,4 @@
 language: ruby
 rvm:
   - 1.9.3
-before_script: git checkout master
 script: bundle exec rake ci -t
