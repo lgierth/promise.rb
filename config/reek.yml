@@ -22,15 +22,15 @@ DuplicateMethodCall:
   max_calls: 1
   allow_calls: []
 FeatureEnvy:
-  enabled: false
+  enabled: true
   exclude: []
 IrresponsibleModule:
-  enabled: true
+  enabled: false
   exclude: []
 LongParameterList:
   enabled: true
   exclude: []
-  max_params: 3
+  max_params: 2
   overrides:
     initialize:
       max_params: 3
@@ -49,7 +49,7 @@ NilCheck:
 RepeatedConditional:
   enabled: true
   exclude: []
-  max_ifs: 2
+  max_ifs: 1
 TooManyInstanceVariables:
   enabled: true
   exclude: []
@@ -57,7 +57,7 @@ TooManyInstanceVariables:
 TooManyMethods:
   enabled: true
   exclude: []
-  max_methods: 18
+  max_methods: 10
 TooManyStatements:
   enabled: true
   exclude:
@@ -98,6 +98,6 @@ UnusedParameters:
   enabled: true
   exclude: []
 UtilityFunction:
-  enabled: false
+  enabled: true
   exclude: []
   max_helper_calls: 0
