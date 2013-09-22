@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'promise/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'promise'
+  spec.name          = 'promise.rb'
   spec.version       = Promise::VERSION
   spec.authors       = ['Lars Gierth']
   spec.email         = ['lars.gierth@gmail.com']
