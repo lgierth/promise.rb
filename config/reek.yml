@@ -49,15 +49,15 @@ NilCheck:
 RepeatedConditional:
   enabled: true
   exclude: []
-  max_ifs: 1
+  max_ifs: 2
 TooManyInstanceVariables:
   enabled: true
   exclude: []
-  max_instance_variables: 5
+  max_instance_variables: 6
 TooManyMethods:
   enabled: true
   exclude: []
-  max_methods: 10
+  max_methods: 12
 TooManyStatements:
   enabled: true
   exclude:
