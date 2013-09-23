@@ -295,4 +295,32 @@ describe Promise do
       end
     end
   end
+
+  describe '#progress' do
+    let(:status) { double('status') }
+
+    it 'calls the callbacks in the order of calls to #on_progress' do
+      order = []
+      block = proc do |i, stat|
+        order << i
+        expect(stat).to eq(status)
+      end
+
+      subject.on_progress(block.curry[1])
+      subject.on_progress(block.curry[2])
+      subject.on_progress(block.curry[3])
+      subject.progress(status)
+
+      expect(order).to eq([1, 2, 3])
+    end
+
+    it 'does not call back unless pending' do
+      called = false
+      subject.on_progress(proc { |_| called = true })
+      subject.fulfill(value)
+
+      subject.progress(status)
+      expect(called).to eq(false)
+    end
+  end
 end

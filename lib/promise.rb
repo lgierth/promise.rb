@@ -9,6 +9,7 @@ class Promise
     @state = :pending
     @on_fulfill = []
     @on_reject = []
+    @on_progress = []
   end
 
   def pending?
@@ -41,6 +42,16 @@ class Promise
     dispatch(@on_reject, reason) do
       @state = :rejected
       @reason = reason
+    end
+  end
+
+  def on_progress(block)
+    @on_progress << block
+  end
+
+  def progress(status)
+    if pending?
+      @on_progress.each { |block| block.call(status) }
     end
   end
 
