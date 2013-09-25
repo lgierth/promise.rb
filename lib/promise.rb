@@ -58,7 +58,7 @@ class Promise
   private
 
   def add_callbacks(on_fulfill, on_reject)
-    next_promise = Promise.new
+    next_promise = self.class.new
     @on_fulfill << FulfillCallback.new(on_fulfill, next_promise)
     @on_reject << RejectCallback.new(on_reject, next_promise)
     next_promise
@@ -68,18 +68,22 @@ class Promise
     if pending?
       yield
       arg.freeze
-      callbacks.each { |callback| callback.dispatch(arg) }
+      callbacks.each { |callback| defer(callback, arg) }
     end
   end
 
   def maybe_dispatch(fulfill_callback, reject_callback)
     if fulfilled?
-      fulfill_callback.dispatch(value)
+      defer(fulfill_callback, value)
     end
 
     if rejected?
-      reject_callback.dispatch(reason)
+      defer(reject_callback, reason)
     end
+  end
+
+  def defer(callback, arg)
+    callback.dispatch(arg)
   end
 
   class Callback
