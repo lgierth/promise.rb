@@ -2,6 +2,9 @@
 
 require 'promise/version'
 
+require 'promise/callback'
+require 'promise/progress'
+
 class Promise
   attr_reader :state, :value, :reason
 
@@ -9,7 +12,6 @@ class Promise
     @state = :pending
     @on_fulfill = []
     @on_reject = []
-    @on_progress = []
   end
 
   def pending?
@@ -45,16 +47,6 @@ class Promise
     end
   end
 
-  def on_progress(block)
-    @on_progress << block
-  end
-
-  def progress(status)
-    if pending?
-      @on_progress.each { |block| block.call(status) }
-    end
-  end
-
   private
 
   def add_callbacks(on_fulfill, on_reject)
@@ -84,57 +76,5 @@ class Promise
 
   def defer(callback, arg)
     callback.dispatch(arg)
-  end
-
-  class Callback
-    def initialize(block, next_promise)
-      @block = block
-      @next_promise = next_promise
-    end
-
-    private
-
-    def execute(value)
-      @block.call(value)
-    rescue => error
-      @next_promise.reject(error)
-    end
-
-    def handle_result(result)
-      if Promise === result
-        assume_state(result)
-      else
-        @next_promise.fulfill(result)
-      end
-    end
-
-    def assume_state(returned_promise)
-      on_fulfill = @next_promise.method(:fulfill)
-      on_reject = @next_promise.method(:reject)
-
-      returned_promise.then(on_fulfill, on_reject)
-    end
-  end
-
-  class FulfillCallback < Callback
-    def dispatch(value)
-      if @block
-        result = execute(value)
-        handle_result(result)
-      else
-        handle_result(value)
-      end
-    end
-  end
-
-  class RejectCallback < Callback
-    def dispatch(reason)
-      if @block
-        result = execute(reason)
-        handle_result(result)
-      else
-        @next_promise.reject(reason)
-      end
-    end
   end
 end
