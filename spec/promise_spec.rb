@@ -108,6 +108,14 @@ describe Promise do
         subject.reject(reason)
         expect(called).to eq(false)
       end
+
+      it 'can be passed as a block' do
+        result = nil
+        subject.then { |val| result = val }
+
+        subject.fulfill(value)
+        expect(result).to eq(value)
+      end
     end
 
     describe '3.2.3 on_reject' do
@@ -313,7 +321,7 @@ describe Promise do
 
       subject.on_progress(block.curry[1])
       subject.on_progress(block.curry[2])
-      subject.on_progress(block.curry[3])
+      subject.on_progress(&block.curry[3])
       subject.progress(status)
 
       expect(order).to eq([1, 2, 3])

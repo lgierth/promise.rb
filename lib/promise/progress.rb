@@ -2,8 +2,8 @@
 
 class Promise
   module Progress
-    def on_progress(block)
-      (@on_progress ||= []) << block
+    def on_progress(block = nil, &blk)
+      (@on_progress ||= []) << (blk || block)
     end
 
     def progress(status)

@@ -26,7 +26,8 @@ class Promise
     @state == :rejected
   end
 
-  def then(on_fulfill = nil, on_reject = nil)
+  def then(on_fulfill = nil, on_reject = nil, &block)
+    on_fulfill = block if block
     next_promise = add_callbacks(on_fulfill, on_reject)
 
     maybe_dispatch(@on_fulfill.last, @on_reject.last)
