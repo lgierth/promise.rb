@@ -8,6 +8,6 @@ rvm:
   - jruby-head
 matrix:
   allow_failures:
-    - ruby-head
+    - rvm: ruby-head
 before_script: git checkout master
 script: bundle exec rake ci:metrics -t
