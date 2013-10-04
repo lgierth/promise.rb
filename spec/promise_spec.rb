@@ -10,296 +10,292 @@ describe Promise do
   let(:reason) { double('reason') }
   let(:other_reason) { double('other_reason') }
 
-  describe '#state' do
-    describe '3.1.1 pending' do
-      it 'transitions to fulfilled' do
-        subject.fulfill(value)
-        expect(subject.state).to eq(:fulfilled)
-      end
-
-      it 'transitions to rejected' do
-        subject.reject(reason)
-        expect(subject.state).to eq(:rejected)
-      end
+  describe '3.1.1 pending' do
+    it 'transitions to fulfilled' do
+      subject.fulfill(value)
+      expect(subject.state).to eq(:fulfilled)
     end
 
-    describe '3.1.2 fulfilled' do
-      it 'does not transition to other states' do
-        subject.fulfill(value)
-        subject.reject(reason)
-        expect(subject.state).to eq(:fulfilled)
-      end
-
-      it 'has an immutable value' do
-        subject.fulfill(value)
-        expect(subject.value).to eq(value)
-
-        subject.fulfill(other_value)
-        expect(subject.value).to eq(value)
-
-        expect(subject.value).to be_frozen
-      end
-    end
-
-    describe '3.1.3 rejected' do
-      it 'does not transition to other states' do
-        subject.reject(reason)
-        subject.fulfill(value)
-        expect(subject.state).to eq(:rejected)
-      end
-
-      it 'has an immutable reason' do
-        subject.reject(reason)
-        expect(subject.reason).to eq(reason)
-
-        subject.reject(other_reason)
-        expect(subject.reason).to eq(reason)
-
-        expect(subject.reason).to be_frozen
-      end
+    it 'transitions to rejected' do
+      subject.reject(reason)
+      expect(subject.state).to eq(:rejected)
     end
   end
 
-  describe '#then' do
-    describe '3.2.1 on_fulfill' do
-      it 'is optional' do
-        subject.then
-        subject.fulfill(value)
-      end
+  describe '3.1.2 fulfilled' do
+    it 'does not transition to other states' do
+      subject.fulfill(value)
+      subject.reject(reason)
+      expect(subject.state).to eq(:fulfilled)
     end
 
-    describe '3.2.1 on_reject' do
-      it 'is optional' do
-        subject.then(proc { |_| })
-        subject.reject(reason)
-      end
+    it 'has an immutable value' do
+      subject.fulfill(value)
+      expect(subject.value).to eq(value)
+
+      subject.fulfill(other_value)
+      expect(subject.value).to eq(value)
+
+      expect(subject.value).to be_frozen
+    end
+  end
+
+  describe '3.1.3 rejected' do
+    it 'does not transition to other states' do
+      subject.reject(reason)
+      subject.fulfill(value)
+      expect(subject.state).to eq(:rejected)
     end
 
-    describe '3.2.2 on_fulfill' do
-      it 'is called after promise is fulfilled' do
-        state = nil
-        subject.then(proc { |_| state = subject.state })
+    it 'has an immutable reason' do
+      subject.reject(reason)
+      expect(subject.reason).to eq(reason)
 
-        subject.fulfill(value)
-        expect(state).to eq(:fulfilled)
-      end
+      subject.reject(other_reason)
+      expect(subject.reason).to eq(reason)
 
-      it 'is called with fulfillment value' do
-        result = nil
-        subject.then(proc { |val| result = val })
+      expect(subject.reason).to be_frozen
+    end
+  end
 
-        subject.fulfill(value)
-        expect(result).to eq(value)
-      end
+  describe '3.2.1 on_fulfill' do
+    it 'is optional' do
+      subject.then
+      subject.fulfill(value)
+    end
+  end
 
-      it 'is called not more than once' do
-        called = 0
-        subject.then(proc { |_| called += 1 })
+  describe '3.2.1 on_reject' do
+    it 'is optional' do
+      subject.then(proc { |_| })
+      subject.reject(reason)
+    end
+  end
 
-        subject.fulfill(value)
-        subject.fulfill(value)
-        expect(called).to eq(1)
-      end
+  describe '3.2.2 on_fulfill' do
+    it 'is called after promise is fulfilled' do
+      state = nil
+      subject.then(proc { |_| state = subject.state })
 
-      it 'is not called if on_reject has been called' do
-        called = false
-        subject.then(proc { |_| called = true })
-
-        subject.reject(reason)
-        expect(called).to eq(false)
-      end
-
-      it 'can be passed as a block' do
-        result = nil
-        subject.then { |val| result = val }
-
-        subject.fulfill(value)
-        expect(result).to eq(value)
-      end
+      subject.fulfill(value)
+      expect(state).to eq(:fulfilled)
     end
 
-    describe '3.2.3 on_reject' do
-      it 'is called after promise is rejected' do
-        state = nil
-        subject.then(nil, proc { |_| state = subject.state })
+    it 'is called with fulfillment value' do
+      result = nil
+      subject.then(proc { |val| result = val })
 
-        subject.reject(reason)
-        expect(state).to eq(:rejected)
-      end
-
-      it 'is called with rejection reason' do
-        result = nil
-        subject.then(nil, proc { |reas| result = reas })
-
-        subject.reject(reason)
-        expect(result).to eq(reason)
-      end
-
-      it 'is called not more than once' do
-        called = 0
-        subject.then(nil, proc { |_| called += 1 })
-
-        subject.reject(reason)
-        subject.reject(reason)
-        expect(called).to eq(1)
-      end
-
-      it 'is not called if on_fulfill has been called' do
-        called = false
-        subject.then(nil, proc { |_| called = true })
-
-        subject.fulfill(value)
-        expect(called).to eq(false)
-      end
+      subject.fulfill(value)
+      expect(result).to eq(value)
     end
 
-    describe '3.2.4' do
-      it 'returns before on_fulfill or on_reject is called' do
-        pending
-      end
+    it 'is called not more than once' do
+      called = 0
+      subject.then(proc { |_| called += 1 })
+
+      subject.fulfill(value)
+      subject.fulfill(value)
+      expect(called).to eq(1)
     end
 
-    describe '3.2.5' do
-      it 'calls multiple on_fulfill callbacks in order of definition' do
-        order = []
-        on_fulfill = proc do |i, val|
-          order << i
-          expect(val).to eq(value)
-        end
+    it 'is not called if on_reject has been called' do
+      called = false
+      subject.then(proc { |_| called = true })
 
-        subject.then(on_fulfill.curry[1])
-        subject.then(on_fulfill.curry[2])
-
-        subject.fulfill(value)
-        subject.then(on_fulfill.curry[3])
-
-        expect(order).to eq([1, 2, 3])
-      end
-
-      it 'calls multiple on_reject callbacks in order of definition' do
-        order = []
-        on_reject = proc do |i, reas|
-          order << i
-          expect(reas).to eq(reason)
-        end
-
-        subject.then(nil, on_reject.curry[1])
-        subject.then(nil, on_reject.curry[2])
-
-        subject.reject(reason)
-        subject.then(nil, on_reject.curry[3])
-
-        expect(order).to eq([1, 2, 3])
-      end
+      subject.reject(reason)
+      expect(called).to eq(false)
     end
 
-    describe '3.2.6' do
-      let(:error) { StandardError.new }
-      let(:returned_promise) { Promise.new }
+    it 'can be passed as a block' do
+      result = nil
+      subject.then { |val| result = val }
 
-      it 'returns promise2' do
-        expect(subject.then).to be_a(Promise)
-        expect(subject.then).not_to eq(subject)
+      subject.fulfill(value)
+      expect(result).to eq(value)
+    end
+  end
+
+  describe '3.2.3 on_reject' do
+    it 'is called after promise is rejected' do
+      state = nil
+      subject.then(nil, proc { |_| state = subject.state })
+
+      subject.reject(reason)
+      expect(state).to eq(:rejected)
+    end
+
+    it 'is called with rejection reason' do
+      result = nil
+      subject.then(nil, proc { |reas| result = reas })
+
+      subject.reject(reason)
+      expect(result).to eq(reason)
+    end
+
+    it 'is called not more than once' do
+      called = 0
+      subject.then(nil, proc { |_| called += 1 })
+
+      subject.reject(reason)
+      subject.reject(reason)
+      expect(called).to eq(1)
+    end
+
+    it 'is not called if on_fulfill has been called' do
+      called = false
+      subject.then(nil, proc { |_| called = true })
+
+      subject.fulfill(value)
+      expect(called).to eq(false)
+    end
+  end
+
+  describe '3.2.4' do
+    it 'returns before on_fulfill or on_reject is called' do
+      pending
+    end
+  end
+
+  describe '3.2.5' do
+    it 'calls multiple on_fulfill callbacks in order of definition' do
+      order = []
+      on_fulfill = proc do |i, val|
+        order << i
+        expect(val).to eq(value)
       end
 
-      it 'fulfills promise2 with value returned by on_fulfill' do
-        promise2 = subject.then(proc { |_| other_value })
-        subject.fulfill(value)
+      subject.then(on_fulfill.curry[1])
+      subject.then(on_fulfill.curry[2])
 
+      subject.fulfill(value)
+      subject.then(on_fulfill.curry[3])
+
+      expect(order).to eq([1, 2, 3])
+    end
+
+    it 'calls multiple on_reject callbacks in order of definition' do
+      order = []
+      on_reject = proc do |i, reas|
+        order << i
+        expect(reas).to eq(reason)
+      end
+
+      subject.then(nil, on_reject.curry[1])
+      subject.then(nil, on_reject.curry[2])
+
+      subject.reject(reason)
+      subject.then(nil, on_reject.curry[3])
+
+      expect(order).to eq([1, 2, 3])
+    end
+  end
+
+  describe '3.2.6' do
+    let(:error) { StandardError.new }
+    let(:returned_promise) { Promise.new }
+
+    it 'returns promise2' do
+      expect(subject.then).to be_a(Promise)
+      expect(subject.then).not_to eq(subject)
+    end
+
+    it 'fulfills promise2 with value returned by on_fulfill' do
+      promise2 = subject.then(proc { |_| other_value })
+      subject.fulfill(value)
+
+      expect(promise2).to be_fulfilled
+      expect(promise2.value).to eq(other_value)
+    end
+
+    it 'fulfills promise2 with value returned by on_reject' do
+      promise2 = subject.then(nil, proc { |_| other_value })
+      subject.reject(reason)
+
+      expect(promise2).to be_fulfilled
+      expect(promise2.value).to eq(other_value)
+    end
+
+    it 'rejects promise2 with error raised by on_fulfill' do
+      promise2 = subject.then(proc { |_| raise error })
+      subject.fulfill(value)
+
+      expect(promise2).to be_rejected
+      expect(promise2.reason).to eq(error)
+    end
+
+    it 'rejects promise2 with error raised by on_reject' do
+      promise2 = subject.then(nil, proc { |_| raise error })
+      subject.reject(reason)
+
+      expect(promise2).to be_rejected
+      expect(promise2.reason).to eq(error)
+    end
+
+    describe 'on_fulfill returns promise' do
+      it 'makes promise2 assume fulfilled state of returned promise' do
+        promise2 = subject.then(proc { |_| returned_promise })
+
+        subject.fulfill(value)
+        expect(promise2).to be_pending
+
+        returned_promise.fulfill(other_value)
         expect(promise2).to be_fulfilled
         expect(promise2.value).to eq(other_value)
       end
 
-      it 'fulfills promise2 with value returned by on_reject' do
-        promise2 = subject.then(nil, proc { |_| other_value })
-        subject.reject(reason)
+      it 'makes promise2 assume rejected state of returned promise' do
+        promise2 = subject.then(proc { |_| returned_promise })
 
+        subject.fulfill(value)
+        expect(promise2).to be_pending
+
+        returned_promise.reject(other_reason)
+        expect(promise2).to be_rejected
+        expect(promise2.reason).to eq(other_reason)
+      end
+    end
+
+    describe 'on_reject returns promise' do
+      it 'makes promise2 assume fulfilled state of returned promise' do
+        promise2 = subject.then(nil, proc { |_| returned_promise })
+
+        subject.reject(reason)
+        expect(promise2).to be_pending
+
+        returned_promise.fulfill(other_value)
         expect(promise2).to be_fulfilled
         expect(promise2.value).to eq(other_value)
       end
 
-      it 'rejects promise2 with error raised by on_fulfill' do
-        promise2 = subject.then(proc { |_| raise error })
+      it 'makes promise2 assume rejected state of returned promise' do
+        promise2 = subject.then(nil, proc { |_| returned_promise })
+
+        subject.reject(reason)
+        expect(promise2).to be_pending
+
+        returned_promise.reject(other_reason)
+        expect(promise2).to be_rejected
+        expect(promise2.reason).to eq(other_reason)
+      end
+    end
+
+    describe 'without on_fulfill' do
+      it 'fulfill promise2 with fulfillment value' do
+        promise2 = subject.then
         subject.fulfill(value)
 
-        expect(promise2).to be_rejected
-        expect(promise2.reason).to eq(error)
+        expect(promise2).to be_fulfilled
+        expect(promise2.value).to eq(value)
       end
+    end
 
-      it 'rejects promise2 with error raised by on_reject' do
-        promise2 = subject.then(nil, proc { |_| raise error })
+    describe 'without on_reject' do
+      it 'rejects promise2 with rejection reason' do
+        promise2 = subject.then
         subject.reject(reason)
 
         expect(promise2).to be_rejected
-        expect(promise2.reason).to eq(error)
-      end
-
-      describe 'on_fulfill returns promise' do
-        it 'makes promise2 assume fulfilled state of returned promise' do
-          promise2 = subject.then(proc { |_| returned_promise })
-
-          subject.fulfill(value)
-          expect(promise2).to be_pending
-
-          returned_promise.fulfill(other_value)
-          expect(promise2).to be_fulfilled
-          expect(promise2.value).to eq(other_value)
-        end
-
-        it 'makes promise2 assume rejected state of returned promise' do
-          promise2 = subject.then(proc { |_| returned_promise })
-
-          subject.fulfill(value)
-          expect(promise2).to be_pending
-
-          returned_promise.reject(other_reason)
-          expect(promise2).to be_rejected
-          expect(promise2.reason).to eq(other_reason)
-        end
-      end
-
-      describe 'on_reject returns promise' do
-        it 'makes promise2 assume fulfilled state of returned promise' do
-          promise2 = subject.then(nil, proc { |_| returned_promise })
-
-          subject.reject(reason)
-          expect(promise2).to be_pending
-
-          returned_promise.fulfill(other_value)
-          expect(promise2).to be_fulfilled
-          expect(promise2.value).to eq(other_value)
-        end
-
-        it 'makes promise2 assume rejected state of returned promise' do
-          promise2 = subject.then(nil, proc { |_| returned_promise })
-
-          subject.reject(reason)
-          expect(promise2).to be_pending
-
-          returned_promise.reject(other_reason)
-          expect(promise2).to be_rejected
-          expect(promise2.reason).to eq(other_reason)
-        end
-      end
-
-      describe 'without on_fulfill' do
-        it 'fulfill promise2 with fulfillment value' do
-          promise2 = subject.then
-          subject.fulfill(value)
-
-          expect(promise2).to be_fulfilled
-          expect(promise2.value).to eq(value)
-        end
-      end
-
-      describe 'without on_reject' do
-        it 'rejects promise2 with rejection reason' do
-          promise2 = subject.then
-          subject.reject(reason)
-
-          expect(promise2).to be_rejected
-          expect(promise2.reason).to eq(reason)
-        end
+        expect(promise2.reason).to eq(reason)
       end
     end
   end
