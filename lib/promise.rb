@@ -6,7 +6,7 @@ require 'promise/callback'
 require 'promise/progress'
 
 class Promise
-  attr_reader :state, :value, :reason
+  attr_reader :value, :reason
 
   def initialize
     @state = :pending

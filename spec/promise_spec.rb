@@ -13,12 +13,12 @@ describe Promise do
   describe '3.1.1 pending' do
     it 'transitions to fulfilled' do
       subject.fulfill(value)
-      expect(subject.state).to eq(:fulfilled)
+      expect(subject).to be_fulfilled
     end
 
     it 'transitions to rejected' do
       subject.reject(reason)
-      expect(subject.state).to eq(:rejected)
+      expect(subject).to be_rejected
     end
   end
 
@@ -26,7 +26,7 @@ describe Promise do
     it 'does not transition to other states' do
       subject.fulfill(value)
       subject.reject(reason)
-      expect(subject.state).to eq(:fulfilled)
+      expect(subject).to be_fulfilled
     end
 
     it 'has an immutable value' do
@@ -44,7 +44,7 @@ describe Promise do
     it 'does not transition to other states' do
       subject.reject(reason)
       subject.fulfill(value)
-      expect(subject.state).to eq(:rejected)
+      expect(subject).to be_rejected
     end
 
     it 'has an immutable reason' do
@@ -74,11 +74,11 @@ describe Promise do
 
   describe '3.2.2 on_fulfill' do
     it 'is called after promise is fulfilled' do
-      state = nil
-      subject.then(proc { |_| state = subject.state })
+      fulfilled = nil
+      subject.then(proc { |_| fulfilled = subject.fulfilled? })
 
       subject.fulfill(value)
-      expect(state).to eq(:fulfilled)
+      expect(fulfilled).to eq(true)
     end
 
     it 'is called with fulfillment value' do
@@ -117,11 +117,11 @@ describe Promise do
 
   describe '3.2.3 on_reject' do
     it 'is called after promise is rejected' do
-      state = nil
-      subject.then(nil, proc { |_| state = subject.state })
+      rejected = nil
+      subject.then(nil, proc { |_| rejected = subject.rejected? })
 
       subject.reject(reason)
-      expect(state).to eq(:rejected)
+      expect(rejected).to eq(true)
     end
 
     it 'is called with rejection reason' do
