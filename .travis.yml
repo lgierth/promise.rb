@@ -6,7 +6,8 @@ rvm:
   - rbx-19mode
   - ruby-head
   - jruby-head
-allow_failures:
-  - ruby-head
+matrix:
+  allow_failures:
+    - ruby-head
 before_script: git checkout master
 script: bundle exec rake ci:metrics -t
