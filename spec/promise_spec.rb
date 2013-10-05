@@ -315,8 +315,8 @@ describe Promise do
         expect(stat).to eq(status)
       end
 
-      subject.on_progress(block.curry[1])
-      subject.on_progress(block.curry[2])
+      subject.on_progress(&block.curry[1])
+      subject.on_progress(&block.curry[2])
       subject.on_progress(&block.curry[3])
       subject.progress(status)
 
@@ -325,7 +325,7 @@ describe Promise do
 
     it 'does not call back unless pending' do
       called = false
-      subject.on_progress(proc { |_| called = true })
+      subject.on_progress { |_| called = true }
       subject.fulfill(value)
 
       subject.progress(status)

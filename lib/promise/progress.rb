@@ -2,12 +2,17 @@
 
 class Promise
   module Progress
-    def on_progress(block = nil, &blk)
-      (@on_progress ||= []) << (blk || block)
+    def initialize
+      super
+      @on_progress = []
+    end
+
+    def on_progress(&block)
+      @on_progress << block
     end
 
     def progress(status)
-      if pending? && @on_progress
+      if pending?
         @on_progress.each { |block| block.call(status) }
       end
     end
