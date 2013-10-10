@@ -63,6 +63,7 @@ class Promise
       arg.freeze
       callbacks.each { |callback| defer(callback, arg) }
     end
+    nil
   end
 
   def maybe_dispatch(fulfill_callback, reject_callback)
