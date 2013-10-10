@@ -13,7 +13,7 @@ class Promise
       @block.call(value)
     rescue => error
       @next_promise.reject(error)
-      raise error
+      raise
     end
 
     def handle_result(result)
