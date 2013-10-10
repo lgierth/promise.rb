@@ -217,7 +217,7 @@ describe Promise do
 
     it 'rejects promise2 with error raised by on_fulfill' do
       promise2 = subject.then(proc { |_| raise error })
-      subject.fulfill(value)
+      expect { subject.fulfill(value) }.to raise_error(error)
 
       expect(promise2).to be_rejected
       expect(promise2.reason).to eq(error)
@@ -225,7 +225,7 @@ describe Promise do
 
     it 'rejects promise2 with error raised by on_reject' do
       promise2 = subject.then(nil, proc { |_| raise error })
-      subject.reject(reason)
+      expect { subject.reject(reason) }.to raise_error(error)
 
       expect(promise2).to be_rejected
       expect(promise2.reason).to eq(error)
