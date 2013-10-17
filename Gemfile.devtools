@@ -3,8 +3,6 @@
 group :development do
   gem 'rake',  '~> 10.1.0'
   gem 'rspec', '~> 2.14.1'
-  gem 'rspec-core', git: 'https://github.com/rspec/rspec-core.git',
-                    branch: '2-14-maintenance'
   gem 'yard',  '~> 0.8.7'
 end
 
