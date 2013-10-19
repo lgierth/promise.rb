@@ -63,6 +63,12 @@ class Promise
       arg.freeze
       callbacks.each { |callback| defer(callback, arg) }
     end
+
+    # Callback#assume_state uses #dispatch as returned_promise's on_fulfill
+    # and on_reject callback. Without an explicit return value, the implicit
+    # return value might be the callbacks array, and thus returned_promise
+    # would be fulfilled (or rejected) with that array. It would be frozen
+    # from then on, letting further calls to #then crash.
     nil
   end
 

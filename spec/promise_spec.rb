@@ -332,4 +332,16 @@ describe Promise do
       expect(called).to eq(false)
     end
   end
+
+  describe '#fulfill' do
+    it 'does not return anything' do
+      expect(subject.fulfill(nil)).to eq(nil)
+    end
+  end
+
+  describe '#reject' do
+    it 'does not return anything' do
+      expect(subject.reject(nil)).to eq(nil)
+    end
+  end
 end
