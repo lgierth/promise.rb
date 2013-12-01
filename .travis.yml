@@ -10,4 +10,4 @@ matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-head
-script: bundle exec rake ci:metrics -t
+script: bundle exec rake ci -t
