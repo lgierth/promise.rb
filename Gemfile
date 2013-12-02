@@ -11,6 +11,7 @@ gem 'awesome_print'
 
 platform :rbx do
   gem 'rubysl'
+  gem 'racc'
 end
 
 # Added by devtools
