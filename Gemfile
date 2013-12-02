@@ -9,5 +9,9 @@ gem 'fuubar',   git: 'https://github.com/lgierth/fuubar.git',
                 ref: 'static-percentage'
 gem 'awesome_print'
 
+platform :rbx do
+  gem 'rubysl'
+end
+
 # Added by devtools
 eval_gemfile 'Gemfile.devtools'
