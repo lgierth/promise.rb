@@ -7,8 +7,12 @@ describe Promise do
 
   let(:value) { double('value') }
   let(:other_value) { double('other_value') }
-  let(:reason) { double('reason') }
-  let(:other_reason) { double('other_reason') }
+  let(:reason) do
+    StandardError.new('reason').tap { |ex| ex.set_backtrace(caller) }
+  end
+  let(:other_reason) do
+    StandardError.new('other_reason').tap { |ex| ex.set_backtrace(caller) }
+  end
 
   describe '3.1.1 pending' do
     it 'transitions to fulfilled' do
@@ -337,11 +341,39 @@ describe Promise do
     it 'does not return anything' do
       expect(subject.fulfill(nil)).to eq(nil)
     end
+
+    it 'does not require a value' do
+      subject.fulfill
+      expect(subject.value).to be(nil)
+    end
   end
 
   describe '#reject' do
     it 'does not return anything' do
       expect(subject.reject(nil)).to eq(nil)
+    end
+
+    it 'does not require a reason' do
+      subject.reject
+      expect(subject.reason).to be(nil)
+    end
+  end
+
+  describe '#sync' do
+    it 'waits for fulfillment' do
+      allow(subject).to receive(:wait) { subject.fulfill(value) }
+      expect(subject.sync).to be(value)
+    end
+
+    it 'waits for rejection' do
+      allow(subject).to receive(:wait) { subject.reject(reason) }
+      expect { subject.sync }.to raise_error(reason)
+    end
+
+    it 'waits if pending' do
+      subject.fulfill(value)
+      expect(subject).not_to receive(:wait)
+      expect(subject.sync).to be(value)
     end
   end
 end

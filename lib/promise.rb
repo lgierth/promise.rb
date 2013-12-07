@@ -34,14 +34,20 @@ class Promise
     next_promise
   end
 
-  def fulfill(value)
+  def sync
+    wait if pending?
+    fail reason if rejected?
+    value
+  end
+
+  def fulfill(value = nil)
     dispatch(@on_fulfill, value) do
       @state = :fulfilled
       @value = value
     end
   end
 
-  def reject(reason)
+  def reject(reason = nil)
     dispatch(@on_reject, reason) do
       @state = :rejected
       @reason = reason
@@ -61,7 +67,7 @@ class Promise
     if pending?
       yield
       arg.freeze
-      callbacks.each { |callback| defer(callback, arg) }
+      callbacks.each { |callback| dispatch!(callback, arg) }
     end
 
     # Callback#assume_state uses #dispatch as returned_promise's on_fulfill
@@ -74,15 +80,19 @@ class Promise
 
   def maybe_dispatch(fulfill_callback, reject_callback)
     if fulfilled?
-      defer(fulfill_callback, value)
+      dispatch!(fulfill_callback, value)
     end
 
     if rejected?
-      defer(reject_callback, reason)
+      dispatch!(reject_callback, reason)
     end
   end
 
-  def defer(callback, arg)
-    callback.dispatch(arg)
+  def dispatch!(callback, arg)
+    defer { callback.dispatch(arg) }
+  end
+
+  def defer
+    yield
   end
 end
