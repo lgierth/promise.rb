@@ -3,6 +3,8 @@
 Ruby implementation of the [Promises/A+ spec](http://promisesaplus.com/).
 100% mutation coverage, tested on 1.9, 2.0, Rubinius, and JRuby.
 
+*[What does mutation coverage mean?](https://github.com/mbj/mutant)*
+
 ## Installation
 
 Add this line to your application's Gemfile:
