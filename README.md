@@ -19,19 +19,11 @@ Or install it yourself as:
 
 ## Usage
 
-promise.rb doesn't come with a way of scheduling callback dispatch.
+This guide assumes that you are familiar with the [Promises/A+ spec](http://promisesaplus.com/). It's a quick read, though.
 
-```ruby
-require 'promise'
-
-class MyPromise < Promise
-  def defer(callback, arg)
-    callback.dispatch(arg)
-  end
-end
-```
-
-The above scheduling mechanism violates the following section of the spec:
+promise.rb comes with a very primitive way of scheduling callback dispatch. It
+immediately executes the callback, instead of scheduling it for execution
+*after* `Promise#fulfill` or `Promise#reject`, as demanded by the spec:
 
 > onFulfilled or onRejected must not be called until the execution context
 > stack contains only platform code.
@@ -44,8 +36,8 @@ require 'promise'
 require 'eventmachine'
 
 class MyPromise < Promise
-  def defer(callback, arg)
-    EM.next_tick { callback.dispatch(arg) }
+  def defer
+    EM.next_tick { yield }
   end
 end
 ```
@@ -74,6 +66,48 @@ def failing_stuff
 end
 
 failing_stuff.then(proc { |value| }, proc { |reason| p reason })
+```
+
+promise.rb also comes with the utility method `Promise#sync`, which waits for
+the promise to be fulfilled and returns the value, or for it to be rejected and
+re-raises the reason. Using `#sync` requires you to implement `#wait`. You could
+for example cooperatively schedule fibers waiting for different promises:
+
+```ruby
+require 'promise'
+require 'eventmachine'
+
+class MyPromise < Promise
+  def defer
+    EM.next_tick { yield }
+  end
+
+  def wait
+    fiber = Fiber.current
+    resume = proc do |arg|
+      defer { fiber.resume(arg) }
+    end
+
+    self.then(resume, resume)
+    Fiber.yield
+  end
+end
+
+promise = MyPromise.new
+Fiber.new { p promise.sync }.resume
+EM.next_tick { promise.fulfill }
+```
+
+Or have the rejection reason re-raised from `#sync`:
+
+```ruby
+promise = MyPromise.new
+begin
+  Fiber.new { promise.sync }.resume
+  EM.next_tick { promise.fulfill }
+rescue
+  p $!
+end
 ```
 
 ## License
