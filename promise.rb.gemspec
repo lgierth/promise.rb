@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Lars Gierth']
   spec.email         = ['lars.gierth@gmail.com']
   spec.description   = %q{Promises/A+ for Ruby}
-  spec.summary       = %q{Promises/A+ for Ruby}
+  spec.summary       = %q{Ruby implementation of the Promises/A+ spec}
   spec.homepage      = 'https://github.com/lgierth/promise'
   spec.license       = 'MIT'
 
