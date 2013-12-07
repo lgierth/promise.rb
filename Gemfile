@@ -10,7 +10,9 @@ gem 'fuubar',   git: 'https://github.com/lgierth/fuubar.git',
 gem 'awesome_print'
 
 platform :rbx do
-  gem 'rubysl'
+  gem 'rubysl', '~> 2.0'
+  gem 'rubysl-json', '~> 2.0'
+  gem 'rubinius', '~> 2.0'
   gem 'racc'
 end
 
