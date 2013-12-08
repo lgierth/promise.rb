@@ -97,14 +97,13 @@ end
 
 promise = MyPromise.new
 Fiber.new { p promise.sync }.resume
-EM.next_tick { promise.fulfill }
+promise.fulfill
 ```
 
 Or have the rejection reason re-raised from `#sync`:
 
 ```ruby
 promise = MyPromise.new
-EM.next_tick { promise.reject(MyError.new) }
 
 Fiber.new do
   begin
@@ -113,6 +112,8 @@ Fiber.new do
     p $!
   end
 end.resume
+
+promise.reject(MyError.new)
 ```
 
 ## Unlicense
