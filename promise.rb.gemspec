@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description   = %q{Promises/A+ for Ruby}
   spec.summary       = %q{Ruby implementation of the Promises/A+ spec}
   spec.homepage      = 'https://github.com/lgierth/promise'
-  spec.license       = 'MIT'
+  spec.license       = 'Public Domain'
 
   spec.files         = `git ls-files`.split($/)
   spec.test_files    = spec.files.grep(%r{^spec/})

@@ -112,10 +112,11 @@ rescue
 end
 ```
 
-## License
+## Unlicense
 
-Hatetepe is licensed under the [MIT License](http://opensource.org/licenses/MIT).
-See LICENSE.txt for details.
+promise.rb is free and unencumbered public domain software. For more
+information, see [unlicense.org](http://unlicense.org/) or the accompanying
+UNLICENSE file.
 
 ## Contributing
 
