@@ -104,12 +104,15 @@ Or have the rejection reason re-raised from `#sync`:
 
 ```ruby
 promise = MyPromise.new
-begin
-  Fiber.new { promise.sync }.resume
-  EM.next_tick { promise.fulfill }
-rescue
-  p $!
-end
+EM.next_tick { promise.reject(MyError.new) }
+
+Fiber.new do
+  begin
+    promise.sync
+  rescue MyError
+    p $!
+  end
+end.resume
 ```
 
 ## Unlicense
