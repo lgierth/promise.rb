@@ -363,7 +363,7 @@ describe Promise do
 
     it 'does not require a reason' do
       subject.reject
-      expect(subject.reason).to be(nil)
+      expect(subject.reason).to be(RuntimeError)
     end
   end
 

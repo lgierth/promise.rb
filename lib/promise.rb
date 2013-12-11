@@ -47,7 +47,7 @@ class Promise
     end
   end
 
-  def reject(reason = nil)
+  def reject(reason = RuntimeError)
     dispatch(@on_reject, reason) do
       @state = :rejected
       @reason = reason
