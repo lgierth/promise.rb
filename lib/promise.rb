@@ -27,7 +27,7 @@ class Promise
   end
 
   def then(on_fulfill = nil, on_reject = nil, &block)
-    on_fulfill = block if block
+    on_fulfill ||= block
     next_promise = add_callbacks(on_fulfill, on_reject)
 
     maybe_dispatch(@on_fulfill.last, @on_reject.last)

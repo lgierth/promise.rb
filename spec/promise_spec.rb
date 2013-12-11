@@ -117,6 +117,14 @@ describe Promise do
       subject.fulfill(value)
       expect(result).to eq(value)
     end
+
+    it 'takes precedence over block' do
+      result = nil
+      subject.then(proc { |_| result = :arg }) { |_| result = :block }
+
+      subject.fulfill(value)
+      expect(result).to be(:arg)
+    end
   end
 
   describe '3.2.3 on_reject' do
