@@ -6,6 +6,8 @@ require 'promise/callback'
 require 'promise/progress'
 
 class Promise
+  include Promise::Progress
+
   attr_reader :value, :reason
 
   def initialize

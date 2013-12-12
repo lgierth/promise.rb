@@ -313,11 +313,6 @@ describe Promise do
   end
 
   describe '#progress' do
-    let(:klass) do
-      Class.new(Promise) { include Promise::Progress }
-    end
-    let(:subject) { klass.new }
-
     let(:status) { double('status') }
 
     it 'calls the callbacks in the order of calls to #on_progress' do
