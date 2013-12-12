@@ -123,6 +123,14 @@ end.resume
 promise.reject(MyError.new)
 ```
 
+Very simple progress callbacks, as per Promises/A, are supported as well. They have been dropped in A+, but I found them to be a useful mechanism - if kept simple. Callback dispatch happens immediately in the call to `#progress`, in the order of definition via `#on_progress`. Also note that `#on_progress` does not return a new promise for chaining - the progress mechanism is meant to be very lightweight, and ignores many of the constraints and guarantees of `then`.
+
+```ruby
+promise = MyPromise.new
+promise.on_progress { |status| p status }
+promise.progress(:anything)
+```
+
 ## Unlicense
 
 promise.rb is free and unencumbered public domain software. For more
