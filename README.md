@@ -6,6 +6,7 @@ Ruby implementation of the [Promises/A+ spec](http://promisesaplus.com/).
 Similar projects:
 
 - [concurrent-ruby](https://github.com/jdantonio/concurrent-ruby/blob/master/md/promise.md), Promises/A(+) implementation, thread based
+- [ruby-thread](https://github.com/meh/ruby-thread), thread/mutex/condition variable based, thread safe
 - [promise](https://github.com/bhuga/promising-future), a.k.a. promising-future, classic promises and futures, thread based
 - [celluloid-promise](https://github.com/cotag/celluloid-promise), inspired by Q, backed by a Celluloid actor
 - [em-promise](https://github.com/cotag/em-promise), inspired by Q, backed by an EventMachine reactor
