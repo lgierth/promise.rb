@@ -12,6 +12,8 @@ Similar projects:
 - [futuristic](https://github.com/seanlilmateus/futuristic), MacRuby bindings for Grand Central Dispatch
 - [methodmissing/promise](https://github.com/methodmissing/promise), thread based, abandoned
 
+*Note that promise.rb is probably not thread safe.*
+
 ## Installation
 
 Add this line to your application's Gemfile:
