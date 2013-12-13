@@ -79,6 +79,8 @@ end
 failing_stuff.then(proc { |value| }, proc { |reason| p reason })
 ```
 
+### Waiting for fulfillment/rejection
+
 promise.rb also comes with the utility method `Promise#sync`, which waits for
 the promise to be fulfilled and returns the value, or for it to be rejected and
 re-raises the reason. Using `#sync` requires you to implement `#wait`. You could
@@ -124,6 +126,28 @@ end.resume
 
 promise.reject(MyError.new)
 ```
+
+### Chaining promises
+
+As per the A+ spec, every call to `#then` returns a new promise, which assumes
+the first promise's state. That means it passes its `#fulfill` and `#reject`
+methods to first promise's `#then`, shortcircuiting the two promises. In case
+a callback returns a promise, it'll instead assume that promise's state.
+
+Imagine the `#fulfill` and `#reject` calls in the following example happening
+somewhere in a background Fiber or so.
+
+```ruby
+require 'promise'
+
+Promise.new
+  .tap(&:fulfill)
+  .then { Promise.new.tap(&:fulfill) }
+  .then { Promise.new.tap(&:reject) }
+  .then(nil, proc { |reason| p reason })
+```
+
+### Progress callbacks
 
 Very simple progress callbacks, as per Promises/A, are supported as well. They have been dropped in A+, but I found them to be a useful mechanism - if kept simple. Callback dispatch happens immediately in the call to `#progress`, in the order of definition via `#on_progress`. Also note that `#on_progress` does not return a new promise for chaining - the progress mechanism is meant to be very lightweight, and ignores many of the constraints and guarantees of `then`.
 
