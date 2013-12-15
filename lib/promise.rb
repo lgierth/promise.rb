@@ -68,7 +68,6 @@ class Promise
   def dispatch(callbacks, arg)
     if pending?
       yield
-      arg.freeze
       callbacks.each { |callback| dispatch!(callback, arg) }
     end
 

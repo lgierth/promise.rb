@@ -33,14 +33,12 @@ describe Promise do
       expect(subject).to be_fulfilled
     end
 
-    it 'has an immutable value' do
+    it 'has a value' do
       subject.fulfill(value)
       expect(subject.value).to eq(value)
 
       subject.fulfill(other_value)
       expect(subject.value).to eq(value)
-
-      expect(subject.value).to be_frozen
     end
   end
 
@@ -51,14 +49,12 @@ describe Promise do
       expect(subject).to be_rejected
     end
 
-    it 'has an immutable reason' do
+    it 'has a reason' do
       subject.reject(reason)
       expect(subject.reason).to eq(reason)
 
       subject.reject(other_reason)
       expect(subject.reason).to eq(reason)
-
-      expect(subject.reason).to be_frozen
     end
   end
 
