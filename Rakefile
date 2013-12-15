@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require "bundler/gem_tasks"
+task :default => 'ci:metrics'
 
 # Added by devtools
 require 'devtools'
