@@ -7,11 +7,13 @@ describe Promise do
 
   let(:value) { double('value') }
   let(:other_value) { double('other_value') }
+
+  let(:backtrace) { caller }
   let(:reason) do
-    StandardError.new('reason').tap { |ex| ex.set_backtrace(caller) }
+    StandardError.new('reason').tap { |ex| ex.set_backtrace(backtrace) }
   end
   let(:other_reason) do
-    StandardError.new('other_reason').tap { |ex| ex.set_backtrace(caller) }
+    StandardError.new('other_reason').tap { |ex| ex.set_backtrace(backtrace) }
   end
 
   describe '3.1.1 pending' do
@@ -354,7 +356,29 @@ describe Promise do
 
     it 'does not require a reason' do
       subject.reject
-      expect(subject.reason).to be(RuntimeError)
+      expect(subject.reason).to be_a(RuntimeError)
+    end
+
+    it 'allows nil reason' do
+      subject.reject(nil)
+      expect(subject.reason).to be_a(RuntimeError)
+    end
+
+    it 'sets the backtrace' do
+      subject.reject
+      expect(subject.reason.backtrace[0])
+        .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
+    end
+
+    it 'does not override backtrace' do
+      subject.reject(reason)
+      expect(subject.reason.backtrace).to be(backtrace)
+    end
+
+    it 'builds exception object for custom error class' do
+      cls = Class.new(StandardError)
+      subject.reject(cls)
+      expect(subject.reason).to be_a(cls)
     end
   end
 

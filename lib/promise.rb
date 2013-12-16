@@ -49,7 +49,8 @@ class Promise
     end
   end
 
-  def reject(reason = RuntimeError)
+  def reject(reason = nil)
+    reason = build_reason(reason || RuntimeError, caller)
     dispatch(@on_reject, reason) do
       @state = :rejected
       @reason = reason
@@ -95,5 +96,11 @@ class Promise
 
   def defer
     yield
+  end
+
+  def build_reason(reason, backtrace)
+    reason = reason.new if reason.respond_to?(:new)
+    reason.set_backtrace(backtrace) unless reason.backtrace
+    reason
   end
 end
