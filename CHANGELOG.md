@@ -1,5 +1,11 @@
 # promise.rb changelog
 
+## 0.5.0 (December 16, 2013)
+
+* Fulfillment value and rejection reason are no longer being frozen
+* Rejection reason always gets a sensible backtrace now
+* Have pending specs for deviations from the A+ spec
+
 ## 0.4.0 (December 13, 2013)
 
 * Disclaiming my copyright, promise.rb is now in the Public Domain
