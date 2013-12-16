@@ -42,6 +42,10 @@ describe Promise do
       subject.fulfill(other_value)
       expect(subject.value).to eq(value)
     end
+
+    it 'freezes the value' do
+      pending 'Dropped in 74da6e9'
+    end
   end
 
   describe '3.1.3 rejected' do
@@ -57,6 +61,10 @@ describe Promise do
 
       subject.reject(other_reason)
       expect(subject.reason).to eq(reason)
+    end
+
+    it 'freezes the reason' do
+      pending 'Dropped in 74da6e9'
     end
   end
 
@@ -162,7 +170,7 @@ describe Promise do
 
   describe '3.2.4' do
     it 'returns before on_fulfill or on_reject is called' do
-      pending
+      pending 'To be implemented by application code'
     end
   end
 
