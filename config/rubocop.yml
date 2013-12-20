@@ -47,3 +47,7 @@ ConstantName:
 # Not all trivial readers/writers can be defined with attr_* methods
 TrivialAccessors:
   Enabled: false
+
+SignalException:
+  # Valid values are: semantic, only_raise and only_fail
+  EnforcedStyle: only_raise

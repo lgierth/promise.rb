@@ -20,7 +20,8 @@ DuplicateMethodCall:
   enabled: true
   exclude: []
   max_calls: 1
-  allow_calls: []
+  allow_calls:
+  - source.backtrace
 FeatureEnvy:
   enabled: false
   exclude: []
@@ -49,7 +50,7 @@ NilCheck:
 RepeatedConditional:
   enabled: true
   exclude: []
-  max_ifs: 2
+  max_ifs: 3
 TooManyInstanceVariables:
   enabled: true
   exclude: []
@@ -57,7 +58,7 @@ TooManyInstanceVariables:
 TooManyMethods:
   enabled: true
   exclude: []
-  max_methods: 14
+  max_methods: 12
 TooManyStatements:
   enabled: true
   exclude:
