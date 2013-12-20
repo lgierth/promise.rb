@@ -2,55 +2,47 @@
 
 class Promise
   class Callback
-    def initialize(block, next_promise)
-      @block = block
+    def initialize(on_fulfill, on_reject, next_promise)
+      @on_fulfill, @on_reject = on_fulfill, on_reject
       @next_promise = next_promise
     end
 
-    private
+    def block_for(promise)
+      promise.fulfilled? ? @on_fulfill : @on_reject
+    end
 
-    def execute(value)
-      @block.call(value)
-    rescue => error
-      @next_promise.reject(error)
+    def param_for(promise)
+      promise.fulfilled? ? promise.value : promise.reason
+    end
+
+    def dispatch(promise)
+      if (block = block_for(promise))
+        handle_result(promise) { execute(promise, block) }
+      else
+        assume_state(promise, @next_promise)
+      end
+    end
+
+    def execute(promise, block)
+      block.call(param_for(promise))
+    rescue => ex
+      @next_promise.reject(ex, promise.backtrace)
       raise
     end
 
-    def handle_result(result)
-      if Promise === result
-        assume_state(result)
+    def handle_result(promise)
+      if Promise === (result = yield)
+        assume_state(result, @next_promise)
       else
-        @next_promise.fulfill(result)
+        @next_promise.fulfill(result, promise.backtrace)
       end
     end
 
-    def assume_state(returned_promise)
-      on_fulfill = @next_promise.method(:fulfill)
-      on_reject = @next_promise.method(:reject)
+    def assume_state(source, target)
+      on_fulfill = proc { target.fulfill(source.value, source.backtrace) }
+      on_reject  = proc { target.reject(source.reason, source.backtrace) }
 
-      returned_promise.then(on_fulfill, on_reject)
-    end
-  end
-
-  class FulfillCallback < Callback
-    def dispatch(value)
-      if @block
-        result = execute(value)
-        handle_result(result)
-      else
-        handle_result(value)
-      end
-    end
-  end
-
-  class RejectCallback < Callback
-    def dispatch(reason)
-      if @block
-        result = execute(reason)
-        handle_result(result)
-      else
-        @next_promise.reject(reason)
-      end
+      source.then(on_fulfill, on_reject)
     end
   end
 end
