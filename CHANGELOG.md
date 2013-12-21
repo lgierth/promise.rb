@@ -6,6 +6,8 @@
 * The rejection reason isn't overloaded with the promise's backtrace anymore as
   introduced in 0.5.0. Instead, Promise#backtrace will be populated with the
   originating call to #fulfill or #reject.
+* The backtrace no longer guarantees that the actual caller is its first
+  element (thank you JRuby).
 
 ## 0.5.0 (December 16, 2013)
 
