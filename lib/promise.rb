@@ -50,26 +50,23 @@ class Promise
   end
 
   def fulfill(value = nil, backtrace = nil)
-    backtrace ||= caller
-    dispatch do
+    dispatch(backtrace) do
       @state = :fulfilled
       @value = value
-      @backtrace = backtrace
     end
   end
 
   def reject(reason = RuntimeError, backtrace = nil)
-    backtrace ||= caller
-    dispatch do
+    dispatch(backtrace) do
       @state = :rejected
       @reason = reason
-      @backtrace = backtrace
     end
   end
 
-  def dispatch
+  def dispatch(backtrace)
     if pending?
       yield
+      @backtrace = backtrace || caller
       @callbacks.each { |generator| dispatch!(generator.call) }
       nil
     end

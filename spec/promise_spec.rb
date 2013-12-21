@@ -368,7 +368,7 @@ describe Promise do
 
     it 'sets the backtrace' do
       subject.fulfill
-      expect(subject.backtrace[0])
+      expect(subject.backtrace.join)
         .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
     end
   end
@@ -385,7 +385,7 @@ describe Promise do
 
     it 'sets the backtrace' do
       subject.reject
-      expect(subject.backtrace[0])
+      expect(subject.backtrace.join)
         .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
     end
   end
