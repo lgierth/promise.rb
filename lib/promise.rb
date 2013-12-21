@@ -49,7 +49,8 @@ class Promise
     value
   end
 
-  def fulfill(value = nil, backtrace = caller)
+  def fulfill(value = nil, backtrace = nil)
+    backtrace ||= caller
     dispatch do
       @state = :fulfilled
       @value = value
@@ -57,7 +58,8 @@ class Promise
     end
   end
 
-  def reject(reason = RuntimeError, backtrace = caller)
+  def reject(reason = RuntimeError, backtrace = nil)
+    backtrace ||= caller
     dispatch do
       @state = :rejected
       @reason = reason
