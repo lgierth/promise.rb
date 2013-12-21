@@ -1,5 +1,12 @@
 # promise.rb changelog
 
+## 0.6.0 (December 21, 2013)
+
+* Most of Promise and Callback have been rewritten. Less code.
+* The rejection reason isn't overloaded with the promise's backtrace anymore as
+  introduced in 0.5.0. Instead, Promise#backtrace will be populated with the
+  originating call to #fulfill or #reject.
+
 ## 0.5.0 (December 16, 2013)
 
 * Fulfillment value and rejection reason are no longer being frozen
