@@ -58,10 +58,10 @@ class Promise
     end
   end
 
-  def reject(reason = nil, backtrace = nil)
+  def reject(reason = Error, backtrace = nil)
     dispatch(backtrace) do
       @state = :rejected
-      @reason = reason || Error
+      @reason = reason
     end
   end
 
