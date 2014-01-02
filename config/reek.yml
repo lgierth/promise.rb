@@ -34,7 +34,7 @@ LongParameterList:
   max_params: 2
   overrides:
     initialize:
-      max_params: 3
+      max_params: 4
 LongYieldList:
   enabled: true
   exclude: []
