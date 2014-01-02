@@ -2,39 +2,40 @@
 
 class Promise
   class Callback
-    def initialize(on_fulfill, on_reject, next_promise)
+    def initialize(promise, on_fulfill, on_reject, next_promise)
+      @promise = promise
       @on_fulfill, @on_reject = on_fulfill, on_reject
       @next_promise = next_promise
     end
 
-    def block_for(promise)
-      promise.fulfilled? ? @on_fulfill : @on_reject
+    def block
+      @promise.fulfilled? ? @on_fulfill : @on_reject
     end
 
-    def param_for(promise)
-      promise.fulfilled? ? promise.value : promise.reason
+    def param
+      @promise.fulfilled? ? @promise.value : @promise.reason
     end
 
-    def dispatch(promise)
-      if (block = block_for(promise))
-        handle_result(promise) { execute(promise, block) }
+    def dispatch
+      if block
+        handle_result { execute }
       else
-        assume_state(promise, @next_promise)
+        assume_state(@promise, @next_promise)
       end
     end
 
-    def execute(promise, block)
-      block.call(param_for(promise))
+    def execute
+      block.call(param)
     rescue => ex
-      @next_promise.reject(ex, promise.backtrace)
+      @next_promise.reject(ex, @promise.backtrace)
       raise
     end
 
-    def handle_result(promise)
+    def handle_result
       if Promise === (result = yield)
         assume_state(result, @next_promise)
       else
-        @next_promise.fulfill(result, promise.backtrace)
+        @next_promise.fulfill(result, @promise.backtrace)
       end
     end
 

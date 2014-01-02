@@ -33,7 +33,7 @@ class Promise
     on_fulfill ||= block
     next_promise = Promise.new
 
-    add_callback { Callback.new(on_fulfill, on_reject, next_promise) }
+    add_callback { Callback.new(self, on_fulfill, on_reject, next_promise) }
     next_promise
   end
 
@@ -75,7 +75,7 @@ class Promise
   end
 
   def dispatch!(callback)
-    defer { callback.dispatch(self) }
+    defer { callback.dispatch }
   end
 
   def defer
