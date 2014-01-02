@@ -6,6 +6,8 @@ require 'promise/callback'
 require 'promise/progress'
 
 class Promise
+  Error = Class.new(RuntimeError)
+
   include Promise::Progress
 
   attr_reader :state, :value, :reason, :backtrace
@@ -56,10 +58,10 @@ class Promise
     end
   end
 
-  def reject(reason = RuntimeError, backtrace = nil)
+  def reject(reason = nil, backtrace = nil)
     dispatch(backtrace) do
       @state = :rejected
-      @reason = reason
+      @reason = reason || Error
     end
   end
 

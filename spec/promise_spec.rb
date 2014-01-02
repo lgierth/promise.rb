@@ -380,7 +380,7 @@ describe Promise do
 
     it 'does not require a reason' do
       subject.reject
-      expect(subject.reason).to be(RuntimeError)
+      expect(subject.reason).to be(Promise::Error)
     end
 
     it 'sets the backtrace' do
