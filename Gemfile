@@ -11,7 +11,6 @@ gem 'awesome_print'
 
 platform :rbx do
   gem 'rubysl', '~> 2.0'
-  gem 'rubysl-json', '~> 2.0'
   gem 'rubinius', '~> 2.0'
 end
 
