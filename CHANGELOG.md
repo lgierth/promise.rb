@@ -1,5 +1,10 @@
 # promise.rb changelog
 
+## 0.6.1 (January 14, 2014)
+
+* The rejection reason now defaults to Promise::Error.
+* Promise::Callback got refactored.
+
 ## 0.6.0 (December 21, 2013)
 
 * Most of Promise and Callback have been rewritten. Less code.
