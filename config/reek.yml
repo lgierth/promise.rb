@@ -10,7 +10,8 @@ ClassVariable:
   exclude: []
 ControlParameter:
   enabled: true
-  exclude: []
+  exclude:
+  - "Promise#reject"
 DataClump:
   enabled: true
   exclude: []
