@@ -2,12 +2,14 @@ language: ruby
 rvm:
   - 1.9.3
   - 2.0.0
+  - 2.1.0
   - jruby
   - rbx
   - ruby-head
   - jruby-head
 matrix:
   allow_failures:
+    - rvm: 2.1.0 # https://github.com/dkubb/adamantium/issues/30
     - rvm: ruby-head
     - rvm: jruby-head
   fast_finish: true
