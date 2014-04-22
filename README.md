@@ -64,8 +64,10 @@ def nonblocking_stuff
   promise
 end
 
-nonblocking_stuff.then { |value| p value }
-nonblocking_stuff.then(proc { |value| p value })
+EM.run do
+    nonblocking_stuff.then { |value| p value }
+    nonblocking_stuff.then(proc { |value| p value })
+end
 ```
 
 Rejection works similarly:
@@ -77,7 +79,9 @@ def failing_stuff
   promise
 end
 
-failing_stuff.then(proc { |value| }, proc { |reason| p reason })
+EM.run do
+    failing_stuff.then(proc { |value| }, proc { |reason| p reason })
+end
 ```
 
 ### Waiting for fulfillment/rejection
@@ -88,6 +92,7 @@ re-raises the reason. Using `#sync` requires you to implement `#wait`. You could
 for example cooperatively schedule fibers waiting for different promises:
 
 ```ruby
+require 'fiber'
 require 'promise'
 require 'eventmachine'
 
@@ -107,25 +112,29 @@ class MyPromise < Promise
   end
 end
 
-promise = MyPromise.new
-Fiber.new { p promise.sync }.resume
-promise.fulfill
+EM.run do
+    promise = MyPromise.new
+    Fiber.new { p promise.sync }.resume
+    promise.fulfill
+end
 ```
 
 Or have the rejection reason re-raised from `#sync`:
 
 ```ruby
-promise = MyPromise.new
+EM.run do
+  promise = MyPromise.new
 
-Fiber.new do
-  begin
-    promise.sync
-  rescue MyError
-    p $!
-  end
-end.resume
+  Fiber.new do
+    begin
+      promise.sync
+    rescue
+      p $!
+    end
+  end.resume
 
-promise.reject(MyError.new)
+  promise.reject('reason')
+end
 ```
 
 ### Chaining promises
