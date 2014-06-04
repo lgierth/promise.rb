@@ -1,18 +1,17 @@
 language: ruby
 rvm:
-  - 1.9.3
-  - 2.0.0
-  - 2.1.0
+  - 1.9
+  - 2.0
+  - 2.1
   - jruby
-  - rbx
+  - rbx-2
   - ruby-head
   - jruby-head
 matrix:
   allow_failures:
-    - rvm: 2.1.0 # https://github.com/dkubb/adamantium/issues/30
     - rvm: ruby-head
     - rvm: jruby-head
   fast_finish: true
 script: bundle exec rake -t metrics:coverage ci
 before_install:
-  - gem install bundler -v '= 1.5.1'
+  - gem install bundler
