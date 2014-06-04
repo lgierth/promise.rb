@@ -44,7 +44,7 @@ describe Promise do
     end
 
     it 'freezes the value' do
-      pending 'Dropped in 74da6e9'
+      skip 'Dropped in 74da6e9'
     end
   end
 
@@ -64,7 +64,7 @@ describe Promise do
     end
 
     it 'freezes the reason' do
-      pending 'Dropped in 74da6e9'
+      skip 'Dropped in 74da6e9'
     end
   end
 
@@ -170,7 +170,7 @@ describe Promise do
 
   describe '3.2.4' do
     it 'returns before on_fulfill or on_reject is called' do
-      pending 'To be implemented by application code'
+      skip 'To be implemented by application code'
     end
   end
 
