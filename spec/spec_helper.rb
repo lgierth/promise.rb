@@ -21,3 +21,4 @@ require 'promise'
 
 require 'awesome_print'
 require 'devtools/spec_helper'
+require 'rspec/its'
