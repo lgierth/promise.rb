@@ -18,15 +18,15 @@ class Promise
   end
 
   def pending?
-    @state == :pending
+    @state.equal?(:pending)
   end
 
   def fulfilled?
-    @state == :fulfilled
+    @state.equal?(:fulfilled)
   end
 
   def rejected?
-    @state == :rejected
+    @state.equal?(:rejected)
   end
 
   def then(on_fulfill = nil, on_reject = nil, &block)
