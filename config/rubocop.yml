@@ -93,3 +93,6 @@ PercentLiteralDelimiters:
 # buggy in rubocop-0.21.0, fixed in 0.23.0
 LineEndConcatenation:
   Enabled: false
+
+GuardClause:
+  Enabled: false
