@@ -328,83 +328,85 @@ describe Promise do
     end
   end
 
-  describe '#progress' do
-    let(:status) { double('status') }
+  describe 'extras' do
+    describe '#progress' do
+      let(:status) { double('status') }
 
-    it 'calls the callbacks in the order of calls to #on_progress' do
-      order = []
-      block = proc do |i, stat|
-        order << i
-        expect(stat).to eq(status)
+      it 'calls the callbacks in the order of calls to #on_progress' do
+        order = []
+        block = proc do |i, stat|
+          order << i
+          expect(stat).to eq(status)
+        end
+
+        subject.on_progress(&block.curry[1])
+        subject.on_progress(&block.curry[2])
+        subject.on_progress(&block.curry[3])
+        subject.progress(status)
+
+        expect(order).to eq([1, 2, 3])
       end
 
-      subject.on_progress(&block.curry[1])
-      subject.on_progress(&block.curry[2])
-      subject.on_progress(&block.curry[3])
-      subject.progress(status)
+      it 'does not call back unless pending' do
+        called = false
+        subject.on_progress { |_| called = true }
+        subject.fulfill(value)
 
-      expect(order).to eq([1, 2, 3])
+        subject.progress(status)
+        expect(called).to eq(false)
+      end
     end
 
-    it 'does not call back unless pending' do
-      called = false
-      subject.on_progress { |_| called = true }
-      subject.fulfill(value)
+    describe '#fulfill' do
+      it 'does not return anything' do
+        expect(subject.fulfill(nil)).to eq(nil)
+      end
 
-      subject.progress(status)
-      expect(called).to eq(false)
-    end
-  end
+      it 'does not require a value' do
+        subject.fulfill
+        expect(subject.value).to be(nil)
+      end
 
-  describe '#fulfill' do
-    it 'does not return anything' do
-      expect(subject.fulfill(nil)).to eq(nil)
-    end
-
-    it 'does not require a value' do
-      subject.fulfill
-      expect(subject.value).to be(nil)
+      it 'sets the backtrace' do
+        subject.fulfill
+        expect(subject.backtrace.join)
+          .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
+      end
     end
 
-    it 'sets the backtrace' do
-      subject.fulfill
-      expect(subject.backtrace.join)
-        .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
-    end
-  end
+    describe '#reject' do
+      it 'does not return anything' do
+        expect(subject.reject(nil)).to eq(nil)
+      end
 
-  describe '#reject' do
-    it 'does not return anything' do
-      expect(subject.reject(nil)).to eq(nil)
-    end
+      it 'does not require a reason' do
+        subject.reject
+        expect(subject.reason).to be(Promise::Error)
+      end
 
-    it 'does not require a reason' do
-      subject.reject
-      expect(subject.reason).to be(Promise::Error)
-    end
-
-    it 'sets the backtrace' do
-      subject.reject
-      expect(subject.backtrace.join)
-        .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
-    end
-  end
-
-  describe '#sync' do
-    it 'waits for fulfillment' do
-      allow(subject).to receive(:wait) { subject.fulfill(value) }
-      expect(subject.sync).to be(value)
+      it 'sets the backtrace' do
+        subject.reject
+        expect(subject.backtrace.join)
+          .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
+      end
     end
 
-    it 'waits for rejection' do
-      allow(subject).to receive(:wait) { subject.reject(reason) }
-      expect { subject.sync }.to raise_error(reason)
-    end
+    describe '#sync' do
+      it 'waits for fulfillment' do
+        allow(subject).to receive(:wait) { subject.fulfill(value) }
+        expect(subject.sync).to be(value)
+      end
 
-    it 'waits if pending' do
-      subject.fulfill(value)
-      expect(subject).not_to receive(:wait)
-      expect(subject.sync).to be(value)
+      it 'waits for rejection' do
+        allow(subject).to receive(:wait) { subject.reject(reason) }
+        expect { subject.sync }.to raise_error(reason)
+      end
+
+      it 'waits if pending' do
+        subject.fulfill(value)
+        expect(subject).not_to receive(:wait)
+        expect(subject.sync).to be(value)
+      end
     end
   end
 end
