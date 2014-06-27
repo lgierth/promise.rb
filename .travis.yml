@@ -14,4 +14,4 @@ matrix:
   fast_finish: true
 before_install:
   - gem install bundler
-script: "bundle exec rake -t ci:metrics spec:integration && (bundle exec rake -t metrics:mutant || true)"
+script: bundle exec rake -t ci
