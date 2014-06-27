@@ -1,7 +1,8 @@
 # promise.rb [![Build Status](https://travis-ci.org/lgierth/promise.rb.png?branch=master)](https://travis-ci.org/lgierth/promise.rb) [![Code Climate](https://codeclimate.com/github/lgierth/promise.rb.png)](https://codeclimate.com/github/lgierth/promise.rb) [![Coverage Status](https://coveralls.io/repos/lgierth/promise.rb/badge.png?branch=master)](https://coveralls.io/r/lgierth/promise.rb?branch=master)
 
 Ruby implementation of the [Promises/A+ spec](http://promisesaplus.com/).
-100% [mutation coverage](https://github.com/mbj/mutant), tested on 1.9, 2.0, Rubinius, and JRuby.
+100% [mutation coverage](https://github.com/mbj/mutant),
+tested on MRI 1.9, 2.0, 2.1, Rubinius, and JRuby.
 
 Similar projects:
 
