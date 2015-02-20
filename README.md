@@ -66,8 +66,8 @@ def nonblocking_stuff
 end
 
 EM.run do
-    nonblocking_stuff.then { |value| p value }
-    nonblocking_stuff.then(proc { |value| p value })
+  nonblocking_stuff.then { |value| p value }
+  nonblocking_stuff.then(proc { |value| p value })
 end
 ```
 
@@ -81,7 +81,7 @@ def failing_stuff
 end
 
 EM.run do
-    failing_stuff.then(proc { |value| }, proc { |reason| p reason })
+  failing_stuff.then(proc { |value| }, proc { |reason| p reason })
 end
 ```
 
@@ -114,9 +114,9 @@ class MyPromise < Promise
 end
 
 EM.run do
-    promise = MyPromise.new
-    Fiber.new { p promise.sync }.resume
-    promise.fulfill
+  promise = MyPromise.new
+  Fiber.new { p promise.sync }.resume
+  promise.fulfill
 end
 ```
 
