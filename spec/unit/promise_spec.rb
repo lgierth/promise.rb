@@ -425,5 +425,54 @@ describe Promise do
         expect(new_promise.value).to eq(42)
       end
     end
+
+    describe '.all' do
+      it 'returns a fulfilled promise for an array with no promises' do
+        obj = Object.new
+        promise = Promise.all([1, 'b', obj])
+        expect(promise.fulfilled?).to eq(true)
+        expect(promise.value).to eq([1, 'b', obj])
+      end
+
+      it 'fulfills the result when all args are fulfilled' do
+        p1 = Promise.new
+        p2 = Promise.new
+
+        result = Promise.all([p1, p2, 3])
+
+        expect(result).to be_pending
+        p2.fulfill('b')
+        expect(result).to be_pending
+        p1.fulfill(:a)
+        expect(result).to be_fulfilled
+        expect(result.value).to eq([:a, 'b', 3])
+      end
+
+      it 'leaves result pending if only the first input arg is fulfilled' do
+        p1 = Promise.new
+        p1.fulfill('a')
+        p2 = Promise.new
+
+        result = Promise.all([p1, p2])
+
+        expect(result).to be_pending
+        p2.fulfill(:b)
+        expect(result).to be_fulfilled
+        expect(result.value).to eq(['a', :b])
+      end
+
+      it 'rejects the result when any args is rejected' do
+        p1 = Promise.new
+        p2 = Promise.new
+        reason = RuntimeError.new('p1 failed')
+
+        result = Promise.all([p1, p2])
+
+        expect(result).to be_pending
+        p1.reject(reason)
+        expect(result).to be_rejected
+        expect(result.reason).to eq(reason)
+      end
+    end
   end
 end

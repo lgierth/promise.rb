@@ -64,6 +64,7 @@ TooManyMethods:
 TooManyStatements:
   enabled: true
   exclude:
+  - initialize
   - each
   max_statements: 5
 UncommunicativeMethodName:

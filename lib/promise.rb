@@ -4,6 +4,7 @@ require 'promise/version'
 
 require 'promise/callback'
 require 'promise/progress'
+require 'promise/group'
 
 class Promise
   Error = Class.new(RuntimeError)
@@ -15,6 +16,10 @@ class Promise
   def self.resolve(obj)
     return obj if obj.instance_of?(self)
     new.tap { |promise| promise.fulfill(obj) }
+  end
+
+  def self.all(enumerable)
+    Group.new(enumerable).promise
   end
 
   def initialize
