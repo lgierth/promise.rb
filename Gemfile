@@ -4,9 +4,8 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'devtools', git: 'https://github.com/rom-rb/devtools.git'
-gem 'fuubar',   git: 'https://github.com/lgierth/fuubar.git',
-                ref: 'static-percentage'
+gem 'devtools', '~> 0.1.4'
+gem 'fuubar',   '~> 2.0.0'
 gem 'awesome_print'
 
 gem 'rspec-its'
