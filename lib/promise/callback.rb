@@ -4,7 +4,8 @@ class Promise
   class Callback
     def initialize(promise, on_fulfill, on_reject, next_promise)
       @promise = promise
-      @on_fulfill, @on_reject = on_fulfill, on_reject
+      @on_fulfill = on_fulfill
+      @on_reject = on_reject
       @next_promise = next_promise
     end
 

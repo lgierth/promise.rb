@@ -66,11 +66,11 @@ SignalException:
   EnforcedStyle: only_raise
 
 # Do not prefer do/end over {} for multiline blocks
-Blocks:
+BlockDelimiters:
   Enabled: false
 
 # Allow empty lines around body
-EmptyLinesAroundBody:
+EmptyLinesAroundBlockBody:
   Enabled: false
 
 # Prefer String#% over Kernel#sprintf
