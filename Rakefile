@@ -1,7 +1,12 @@
 # encoding: utf-8
 
-task :default => 'ci:metrics'
+if Gem.ruby_version >= Gem::Version.new('2.1')
+  task :default => 'ci:metrics'
 
-# Added by devtools
-require 'devtools'
-Devtools.init_rake_tasks
+  require 'devtools'
+  Devtools.init_rake_tasks
+else
+  require 'rspec/core/rake_task'
+  RSpec::Core::RakeTask.new(:spec)
+  task :default => :spec
+end

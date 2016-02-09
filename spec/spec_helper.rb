@@ -20,5 +20,5 @@ end
 require 'promise'
 
 require 'awesome_print'
-require 'devtools/spec_helper'
+require 'devtools/spec_helper' if Gem.ruby_version >= Gem::Version.new('2.1')
 require 'rspec/its'
