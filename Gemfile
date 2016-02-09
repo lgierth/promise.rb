@@ -9,11 +9,9 @@ gem 'fuubar',   '~> 2.0.0'
 gem 'awesome_print'
 
 gem 'rspec-its'
+gem 'coveralls', '~> 0.7.0'
 
 platform :rbx do
   gem 'rubysl', '~> 2.0'
   gem 'rubinius', '~> 2.0'
 end
-
-# Added by devtools
-eval_gemfile 'Gemfile.devtools'
