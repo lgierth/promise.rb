@@ -3,14 +3,10 @@ rvm:
   - 1.9
   - 2.0
   - 2.1
+  - 2.2
   - jruby
-  - rbx-2.2.9
-  - ruby-head
-  - jruby-head
+  - rbx
 matrix:
-  allow_failures:
-    - rvm: ruby-head
-    - rvm: jruby-head
   fast_finish: true
 before_install:
   - gem install bundler
