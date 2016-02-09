@@ -1,5 +1,16 @@
 # promise.rb changelog
 
+## 0.7.0.rc1 (February 9, 2016)
+
+### Bug Fixes
+
+* Return instances of the custom promise class from its methods (pull #10)
+
+### Features
+
+* Add Promise.resolve utility method (pull #8)
+* Add Promise.all utility method (pull #9)
+
 ## 0.6.1 (January 14, 2014)
 
 * The rejection reason now defaults to Promise::Error.
