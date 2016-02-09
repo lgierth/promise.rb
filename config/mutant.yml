@@ -3,7 +3,6 @@ name: promise
 namespace: Promise
 ignore_subjects:
 - Promise::Progress#on_progress
-- Promise::Callback#block
 - Promise#rejected?
 - Promise#pending?
 - Promise#fulfilled?
