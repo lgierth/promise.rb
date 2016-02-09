@@ -3,9 +3,9 @@
 class Promise
   module Progress
     def on_progress(&block)
-      @on_progress ||= []
-      @on_progress << block if block_given?
-      @on_progress
+      (@on_progress ||= []).tap do |callbacks|
+        callbacks << block if block_given?
+      end
     end
 
     def progress(status)

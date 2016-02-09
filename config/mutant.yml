@@ -1,9 +1,3 @@
 ---
 name: promise
 namespace: Promise
-ignore_subjects:
-- Promise::Progress#on_progress
-- Promise#rejected?
-- Promise#pending?
-- Promise#fulfilled?
-- Promise#dispatch!

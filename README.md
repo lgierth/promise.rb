@@ -2,7 +2,7 @@
 
 Ruby implementation of the [Promises/A+ spec](http://promisesaplus.com/).
 100% [mutation coverage](https://github.com/mbj/mutant),
-tested on MRI 1.9, 2.0, 2.1, Rubinius, and JRuby.
+tested on MRI 1.9, 2.0, 2.1, 2.2, Rubinius, and JRuby.
 
 Similar projects:
 
