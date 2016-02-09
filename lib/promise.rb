@@ -12,6 +12,11 @@ class Promise
 
   attr_reader :state, :value, :reason, :backtrace
 
+  def self.resolve(obj)
+    return obj if obj.instance_of?(self)
+    new.tap { |promise| promise.fulfill(obj) }
+  end
+
   def initialize
     @state = :pending
     @callbacks = []

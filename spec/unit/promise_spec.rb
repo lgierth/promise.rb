@@ -408,5 +408,22 @@ describe Promise do
         expect(subject.sync).to be(value)
       end
     end
+
+    describe '.resolve' do
+      it 'returns a fulfilled promise from a non-promise' do
+        promise = Promise.resolve(123)
+        expect(promise.fulfilled?).to eq(true)
+        expect(promise.value).to eq(123)
+      end
+
+      it 'assumes the state of a given promise' do
+        promise = Promise.new
+        new_promise = Promise.resolve(promise)
+        expect(new_promise.pending?).to eq(true)
+        promise.fulfill(42)
+        expect(new_promise.fulfilled?).to eq(true)
+        expect(new_promise.value).to eq(42)
+      end
+    end
   end
 end
