@@ -12,6 +12,7 @@ ControlParameter:
   enabled: true
   exclude:
   - "Promise#reject"
+  - "Promise#dispatch"
 DataClump:
   enabled: true
   exclude: []
