@@ -2,8 +2,8 @@ class Promise
   class Group
     attr_reader :promise
 
-    def initialize(inputs)
-      @promise = Promise.new
+    def initialize(result_promise, inputs)
+      @promise = result_promise
       @inputs = inputs
       @remaining = count_promises
       if @remaining.zero?

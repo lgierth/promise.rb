@@ -170,7 +170,16 @@ describe Promise do
 
   describe '3.2.4' do
     it 'returns before on_fulfill or on_reject is called' do
-      skip 'To be implemented by application code'
+      called = false
+      p1 = DelayedPromise.new
+      p2 = p1.then { called = true }
+
+      p1.fulfill(42)
+
+      expect(called).to eq(false)
+      DelayedPromise.call_deferred
+      expect(called).to eq(true)
+      expect(p2).to be_fulfilled
     end
   end
 
@@ -472,6 +481,16 @@ describe Promise do
         p1.reject(reason)
         expect(result).to be_rejected
         expect(result.reason).to eq(reason)
+      end
+
+      it 'returns an instance of the class it is called on' do
+        p1 = Promise.new
+
+        result = DelayedPromise.all([p1, 2])
+
+        expect(result).to be_an_instance_of(DelayedPromise)
+        p1.fulfill(1.0)
+        expect(result.sync).to eq([1.0, 2])
       end
     end
   end

@@ -18,6 +18,7 @@ if ENV['COVERAGE'] == 'true'
 end
 
 require 'promise'
+require_relative 'support/delayed_promise'
 
 require 'awesome_print'
 require 'devtools/spec_helper' if Gem.ruby_version >= Gem::Version.new('2.1')

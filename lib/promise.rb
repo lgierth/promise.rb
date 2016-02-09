@@ -19,7 +19,7 @@ class Promise
   end
 
   def self.all(enumerable)
-    Group.new(enumerable).promise
+    Group.new(new, enumerable).promise
   end
 
   def initialize
@@ -41,7 +41,7 @@ class Promise
 
   def then(on_fulfill = nil, on_reject = nil, &block)
     on_fulfill ||= block
-    next_promise = Promise.new
+    next_promise = self.class.new
 
     add_callback { Callback.new(self, on_fulfill, on_reject, next_promise) }
     next_promise
