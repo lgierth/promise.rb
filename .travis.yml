@@ -14,4 +14,4 @@ matrix:
   fast_finish: true
 before_install:
   - gem install bundler
-script: bundle exec rake -t ci
+script: bundle exec rake -t
