@@ -390,6 +390,10 @@ describe Promise do
         expect(subject.fulfill(nil)).to eq(nil)
       end
 
+      it 'does not return anything when given a promise' do
+        expect(subject.fulfill(Promise.new)).to eq(nil)
+      end
+
       it 'does not require a value' do
         subject.fulfill
         expect(subject.value).to be(nil)
@@ -399,6 +403,17 @@ describe Promise do
         subject.fulfill
         expect(subject.backtrace.join)
           .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
+      end
+
+      it 'assumes the state of a given promise' do
+        promise = Promise.new
+
+        subject.fulfill(promise)
+        expect(subject).to be_pending
+        promise.fulfill(123)
+
+        expect(subject).to be_fulfilled
+        expect(subject.value).to eq(123)
       end
     end
 

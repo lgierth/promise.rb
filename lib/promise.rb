@@ -14,7 +14,6 @@ class Promise
   attr_reader :state, :value, :reason, :backtrace
 
   def self.resolve(obj)
-    return obj if obj.instance_of?(self)
     new.tap { |promise| promise.fulfill(obj) }
   end
 
@@ -43,7 +42,7 @@ class Promise
     on_fulfill ||= block
     next_promise = self.class.new
 
-    add_callback { Callback.new(self, on_fulfill, on_reject, next_promise) }
+    add_callback(Callback.new(self, on_fulfill, on_reject, next_promise))
     next_promise
   end
 
@@ -54,10 +53,15 @@ class Promise
   end
 
   def fulfill(value = nil, backtrace = nil)
-    dispatch(backtrace) do
-      @state = :fulfilled
-      @value = value
+    if Promise === value
+      Callback.assume_state(value, self)
+    else
+      dispatch(backtrace) do
+        @state = :fulfilled
+        @value = value
+      end
     end
+    nil
   end
 
   def reject(reason = nil, backtrace = nil)
@@ -73,11 +77,11 @@ class Promise
 
   private
 
-  def add_callback(&generator)
+  def add_callback(callback)
     if pending?
-      @callbacks << generator
+      @callbacks << callback
     else
-      dispatch!(generator.call)
+      dispatch!(callback)
     end
   end
 
@@ -85,12 +89,12 @@ class Promise
     if pending?
       yield
       @backtrace = backtrace || caller
-      @callbacks.each { |generator| dispatch!(generator.call) }
+      @callbacks.each { |callback| dispatch!(callback) }
       nil
     end
   end
 
   def dispatch!(callback)
-    defer { callback.dispatch }
+    defer { callback.call }
   end
 end
