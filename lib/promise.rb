@@ -11,7 +11,7 @@ class Promise
 
   include Promise::Progress
 
-  attr_reader :state, :value, :reason, :backtrace
+  attr_reader :state, :value, :reason
 
   def self.resolve(obj)
     new.tap { |promise| promise.fulfill(obj) }
@@ -52,11 +52,11 @@ class Promise
     value
   end
 
-  def fulfill(value = nil, backtrace = nil)
+  def fulfill(value = nil)
     if Promise === value
       Callback.assume_state(value, self)
     else
-      dispatch(backtrace) do
+      dispatch do
         @state = :fulfilled
         @value = value
       end
@@ -64,10 +64,10 @@ class Promise
     nil
   end
 
-  def reject(reason = nil, backtrace = nil)
-    dispatch(backtrace) do
+  def reject(reason = nil)
+    dispatch do
       @state = :rejected
-      @reason = reason || Error
+      @reason = reason || Error.new.tap { |err| err.set_backtrace(caller) }
     end
   end
 
@@ -85,10 +85,9 @@ class Promise
     end
   end
 
-  def dispatch(backtrace)
+  def dispatch
     if pending?
       yield
-      @backtrace = backtrace || caller
       @callbacks.each { |callback| dispatch!(callback) }
       nil
     end
