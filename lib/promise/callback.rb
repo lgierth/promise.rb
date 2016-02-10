@@ -47,4 +47,5 @@ class Promise
       source.then(on_fulfill, on_reject)
     end
   end
+  private_constant :Callback
 end

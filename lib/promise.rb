@@ -47,14 +47,6 @@ class Promise
     next_promise
   end
 
-  def add_callback(&generator)
-    if pending?
-      @callbacks << generator
-    else
-      dispatch!(generator.call)
-    end
-  end
-
   def sync
     wait if pending?
     raise reason if rejected?
@@ -75,6 +67,20 @@ class Promise
     end
   end
 
+  def defer
+    yield
+  end
+
+  private
+
+  def add_callback(&generator)
+    if pending?
+      @callbacks << generator
+    else
+      dispatch!(generator.call)
+    end
+  end
+
   def dispatch(backtrace)
     if pending?
       yield
@@ -86,9 +92,5 @@ class Promise
 
   def dispatch!(callback)
     defer { callback.dispatch }
-  end
-
-  def defer
-    yield
   end
 end
