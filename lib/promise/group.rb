@@ -32,7 +32,7 @@ class Promise
     end
 
     def promise?(obj)
-      obj.instance_of?(Promise)
+      obj.is_a?(Promise)
     end
 
     def count_promises
