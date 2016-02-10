@@ -29,7 +29,6 @@ class Promise
       block.call(param)
     rescue => ex
       @next_promise.reject(ex, @promise.backtrace)
-      raise
     end
 
     def handle_result

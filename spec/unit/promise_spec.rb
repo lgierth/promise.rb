@@ -200,6 +200,25 @@ describe Promise do
       expect(order).to eq([1, 2, 3])
     end
 
+    it 'calls all on_fulfill callbacks even if one raises an exception' do
+      order = []
+      on_fulfill = proc do |i, val|
+        order << i
+        expect(val).to eq(value)
+      end
+
+      subject.then(on_fulfill.curry[1])
+      subject.then do |_|
+        order << 2
+        raise 'middle then error'
+      end
+      subject.then(on_fulfill.curry[3])
+
+      subject.fulfill(value)
+
+      expect(order).to eq([1, 2, 3])
+    end
+
     it 'calls multiple on_reject callbacks in order of definition' do
       order = []
       on_reject = proc do |i, reas|
@@ -246,7 +265,7 @@ describe Promise do
 
     it 'rejects promise2 with error raised by on_fulfill' do
       promise2 = subject.then(proc { |_| raise error })
-      expect { subject.fulfill(value) }.to raise_error(error)
+      subject.fulfill(value)
 
       expect(promise2).to be_rejected
       expect(promise2.reason).to eq(error)
@@ -255,7 +274,7 @@ describe Promise do
 
     it 'rejects promise2 with error raised by on_reject' do
       promise2 = subject.then(nil, proc { |_| raise error })
-      expect { subject.reject(reason) }.to raise_error(error)
+      subject.reject(reason)
 
       expect(promise2).to be_rejected
       expect(promise2.reason).to eq(error)
