@@ -511,6 +511,16 @@ describe Promise do
         p1.fulfill(1.0)
         expect(result.sync).to eq([1.0, 2])
       end
+
+      it 'returns an instance of the class it is called on' do
+        p1 = DelayedPromise.new
+
+        result = DelayedPromise.all([p1, 2])
+
+        expect(result).to be_pending
+        p1.fulfill(1.0)
+        expect(result.sync).to eq([1.0, 2])
+      end
     end
   end
 end
