@@ -459,12 +459,25 @@ describe Promise do
         expect(promise.value).to eq(123)
       end
 
-      it 'assumes the state of a given promise' do
+      it 'returns a given promise' do
         promise = Promise.new
         new_promise = Promise.resolve(promise)
-        expect(new_promise.pending?).to eq(true)
+        expect(new_promise.object_id).to eq(promise.object_id)
+      end
+
+      it 'returns a given promise of a subclass of itself' do
+        promise = DelayedPromise.new
+        new_promise = Promise.resolve(promise)
+        expect(new_promise.object_id).to eq(promise.object_id)
+      end
+
+      it 'assumes the state of a given promise of another class' do
+        promise = Promise.new
+        new_promise = DelayedPromise.resolve(promise)
+        expect(new_promise).to be_an_instance_of(DelayedPromise)
+        expect(new_promise).to be_pending
         promise.fulfill(42)
-        expect(new_promise.fulfilled?).to eq(true)
+        expect(new_promise).to be_fulfilled
         expect(new_promise.value).to eq(42)
       end
     end
