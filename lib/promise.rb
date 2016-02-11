@@ -67,7 +67,7 @@ class Promise
   def reject(reason = nil)
     dispatch do
       @state = :rejected
-      @reason = reason || Error.new.tap { |err| err.set_backtrace(caller) }
+      @reason = reason_coercion(reason || Error)
     end
   end
 
@@ -76,6 +76,16 @@ class Promise
   end
 
   private
+
+  def reason_coercion(reason)
+    case reason
+    when Exception
+      reason.set_backtrace(caller) unless reason.backtrace
+    when Class
+      reason = reason_coercion(reason.new) if reason <= Exception
+    end
+    reason
+  end
 
   def add_callback(callback)
     if pending?

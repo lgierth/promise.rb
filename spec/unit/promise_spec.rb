@@ -8,8 +8,9 @@ describe Promise do
   let(:value) { double('value') }
   let(:other_value) { double('other_value') }
 
+  let(:backtrace) { caller }
   let(:reason) do
-    StandardError.new('reason').tap { |err| err.set_backtrace(caller) }
+    StandardError.new('reason').tap { |err| err.set_backtrace(backtrace) }
   end
   let(:other_reason) do
     StandardError.new('other_reason').tap { |err| err.set_backtrace(caller) }
@@ -414,6 +415,26 @@ describe Promise do
         subject.reject
         expect(subject.reason.backtrace.join)
           .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
+      end
+
+      it 'leaves backtrace if already set' do
+        subject.reject(reason)
+        expect(subject.reason.backtrace).to eq(backtrace)
+      end
+
+      it 'instantiates exception class' do
+        subject.reject(Exception)
+        expect(subject.reason).to be_a(Exception)
+      end
+
+      it 'instantiates exception subclasses' do
+        subject.reject(RuntimeError)
+        expect(subject.reason).to be_a(RuntimeError)
+      end
+
+      it "doesn't instantiate non-error classes" do
+        subject.reject(Hash)
+        expect(subject.reason).to eq(Hash)
       end
     end
 
