@@ -2,6 +2,12 @@
 
 class Promise
   class Callback
+    def self.assume_state(source, target)
+      on_fulfill = proc { |value| target.fulfill(value, source.backtrace) }
+      on_reject  = proc { |reason| target.reject(reason, source.backtrace) }
+      source.then(on_fulfill, on_reject)
+    end
+
     def initialize(promise, on_fulfill, on_reject, next_promise)
       @promise = promise
       @on_fulfill = on_fulfill
@@ -9,41 +15,25 @@ class Promise
       @next_promise = next_promise
     end
 
-    def block
-      @promise.fulfilled? ? @on_fulfill : @on_reject
+    def call
+      if @promise.fulfilled?
+        call_block(@on_fulfill, @promise.value)
+      else
+        call_block(@on_reject, @promise.reason)
+      end
     end
 
-    def param
-      @promise.fulfilled? ? @promise.value : @promise.reason
-    end
-
-    def dispatch
+    def call_block(block, param)
       if block
-        handle_result { execute }
+        backtrace = @promise.backtrace
+        begin
+          @next_promise.fulfill(block.call(param), backtrace)
+        rescue => ex
+          @next_promise.reject(ex, backtrace)
+        end
       else
-        assume_state(@promise, @next_promise)
+        self.class.assume_state(@promise, @next_promise)
       end
-    end
-
-    def execute
-      block.call(param)
-    rescue => ex
-      @next_promise.reject(ex, @promise.backtrace)
-    end
-
-    def handle_result
-      if Promise === (result = yield)
-        assume_state(result, @next_promise)
-      else
-        @next_promise.fulfill(result, @promise.backtrace)
-      end
-    end
-
-    def assume_state(source, target)
-      on_fulfill = proc { target.fulfill(source.value, source.backtrace) }
-      on_reject  = proc { target.reject(source.reason, source.backtrace) }
-
-      source.then(on_fulfill, on_reject)
     end
   end
   private_constant :Callback
