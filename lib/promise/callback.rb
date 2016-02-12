@@ -3,8 +3,8 @@
 class Promise
   class Callback
     def self.assume_state(source, target)
-      on_fulfill = proc { |value| target.fulfill(value, source.backtrace) }
-      on_reject  = proc { |reason| target.reject(reason, source.backtrace) }
+      on_fulfill = target.method(:fulfill)
+      on_reject = target.method(:reject)
       source.then(on_fulfill, on_reject)
     end
 
@@ -25,11 +25,10 @@ class Promise
 
     def call_block(block, param)
       if block
-        backtrace = @promise.backtrace
         begin
-          @next_promise.fulfill(block.call(param), backtrace)
+          @next_promise.fulfill(block.call(param))
         rescue => ex
-          @next_promise.reject(ex, backtrace)
+          @next_promise.reject(ex)
         end
       else
         self.class.assume_state(@promise, @next_promise)

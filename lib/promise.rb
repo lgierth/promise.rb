@@ -11,7 +11,7 @@ class Promise
 
   include Promise::Progress
 
-  attr_reader :state, :value, :reason, :backtrace
+  attr_reader :state, :value, :reason
 
   def self.resolve(obj)
     return obj if obj.is_a?(self)
@@ -53,11 +53,11 @@ class Promise
     value
   end
 
-  def fulfill(value = nil, backtrace = nil)
+  def fulfill(value = nil)
     if Promise === value
       Callback.assume_state(value, self)
     else
-      dispatch(backtrace) do
+      dispatch do
         @state = :fulfilled
         @value = value
       end
@@ -65,10 +65,10 @@ class Promise
     nil
   end
 
-  def reject(reason = nil, backtrace = nil)
-    dispatch(backtrace) do
+  def reject(reason = nil)
+    dispatch do
       @state = :rejected
-      @reason = reason || Error
+      @reason = reason_coercion(reason || Error)
     end
   end
 
@@ -78,6 +78,16 @@ class Promise
 
   private
 
+  def reason_coercion(reason)
+    case reason
+    when Exception
+      reason.set_backtrace(caller) unless reason.backtrace
+    when Class
+      reason = reason_coercion(reason.new) if reason <= Exception
+    end
+    reason
+  end
+
   def add_callback(callback)
     if pending?
       @callbacks << callback
@@ -86,10 +96,9 @@ class Promise
     end
   end
 
-  def dispatch(backtrace)
+  def dispatch
     if pending?
       yield
-      @backtrace = backtrace || caller
       @callbacks.each { |callback| dispatch!(callback) }
       nil
     end

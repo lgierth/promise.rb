@@ -10,10 +10,10 @@ describe Promise do
 
   let(:backtrace) { caller }
   let(:reason) do
-    StandardError.new('reason').tap { |ex| ex.set_backtrace(backtrace) }
+    StandardError.new('reason').tap { |err| err.set_backtrace(backtrace) }
   end
   let(:other_reason) do
-    StandardError.new('other_reason').tap { |ex| ex.set_backtrace(backtrace) }
+    StandardError.new('other_reason').tap { |err| err.set_backtrace(caller) }
   end
 
   describe '3.1.1 pending' do
@@ -251,7 +251,6 @@ describe Promise do
 
       expect(promise2).to be_fulfilled
       expect(promise2.value).to eq(other_value)
-      expect(promise2.backtrace).to be(subject.backtrace)
     end
 
     it 'fulfills promise2 with value returned by on_reject' do
@@ -260,7 +259,6 @@ describe Promise do
 
       expect(promise2).to be_fulfilled
       expect(promise2.value).to eq(other_value)
-      expect(promise2.backtrace).to be(subject.backtrace)
     end
 
     it 'rejects promise2 with error raised by on_fulfill' do
@@ -269,7 +267,6 @@ describe Promise do
 
       expect(promise2).to be_rejected
       expect(promise2.reason).to eq(error)
-      expect(promise2.backtrace).to be(subject.backtrace)
     end
 
     it 'rejects promise2 with error raised by on_reject' do
@@ -278,7 +275,6 @@ describe Promise do
 
       expect(promise2).to be_rejected
       expect(promise2.reason).to eq(error)
-      expect(promise2.backtrace).to be(subject.backtrace)
     end
 
     describe 'on_fulfill returns promise' do
@@ -291,7 +287,6 @@ describe Promise do
         returned_promise.fulfill(other_value)
         expect(promise2).to be_fulfilled
         expect(promise2.value).to eq(other_value)
-        expect(promise2.backtrace).to be(returned_promise.backtrace)
       end
 
       it 'makes promise2 assume rejected state of returned promise' do
@@ -303,7 +298,6 @@ describe Promise do
         returned_promise.reject(other_reason)
         expect(promise2).to be_rejected
         expect(promise2.reason).to eq(other_reason)
-        expect(promise2.backtrace).to be(returned_promise.backtrace)
       end
     end
 
@@ -317,7 +311,6 @@ describe Promise do
         returned_promise.fulfill(other_value)
         expect(promise2).to be_fulfilled
         expect(promise2.value).to eq(other_value)
-        expect(promise2.backtrace).to be(returned_promise.backtrace)
       end
 
       it 'makes promise2 assume rejected state of returned promise' do
@@ -329,7 +322,6 @@ describe Promise do
         returned_promise.reject(other_reason)
         expect(promise2).to be_rejected
         expect(promise2.reason).to eq(other_reason)
-        expect(promise2.backtrace).to be(returned_promise.backtrace)
       end
     end
 
@@ -340,7 +332,6 @@ describe Promise do
 
         expect(promise2).to be_fulfilled
         expect(promise2.value).to eq(value)
-        expect(promise2.backtrace).to be(subject.backtrace)
       end
     end
 
@@ -351,7 +342,6 @@ describe Promise do
 
         expect(promise2).to be_rejected
         expect(promise2.reason).to eq(reason)
-        expect(promise2.backtrace).to be(subject.backtrace)
       end
     end
   end
@@ -399,12 +389,6 @@ describe Promise do
         expect(subject.value).to be(nil)
       end
 
-      it 'sets the backtrace' do
-        subject.fulfill
-        expect(subject.backtrace.join)
-          .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
-      end
-
       it 'assumes the state of a given promise' do
         promise = Promise.new
 
@@ -424,13 +408,33 @@ describe Promise do
 
       it 'does not require a reason' do
         subject.reject
-        expect(subject.reason).to be(Promise::Error)
+        expect(subject.reason).to be_a(Promise::Error)
       end
 
       it 'sets the backtrace' do
         subject.reject
-        expect(subject.backtrace.join)
+        expect(subject.reason.backtrace.join)
           .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
+      end
+
+      it 'leaves backtrace if already set' do
+        subject.reject(reason)
+        expect(subject.reason.backtrace).to eq(backtrace)
+      end
+
+      it 'instantiates exception class' do
+        subject.reject(Exception)
+        expect(subject.reason).to be_a(Exception)
+      end
+
+      it 'instantiates exception subclasses' do
+        subject.reject(RuntimeError)
+        expect(subject.reason).to be_a(RuntimeError)
+      end
+
+      it "doesn't instantiate non-error classes" do
+        subject.reject(Hash)
+        expect(subject.reason).to eq(Hash)
       end
     end
 
