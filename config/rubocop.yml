@@ -96,3 +96,6 @@ LineEndConcatenation:
 
 GuardClause:
   Enabled: false
+
+Alias:
+  EnforcedStyle: prefer_alias_method

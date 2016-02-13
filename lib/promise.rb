@@ -47,6 +47,11 @@ class Promise
     next_promise
   end
 
+  def rescue(&block)
+    self.then(nil, block)
+  end
+  alias_method :catch, :rescue
+
   def sync
     wait if pending?
     raise reason if rejected?

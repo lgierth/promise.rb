@@ -347,6 +347,28 @@ describe Promise do
   end
 
   describe 'extras' do
+    describe '#rescue' do
+      it 'provides an on_reject callback' do
+        result = nil
+        subject.rescue { |reas| result = reas }
+
+        subject.reject(reason)
+        expect(result).to eq(reason)
+        expect(subject.reason).to eq(reason)
+      end
+    end
+
+    describe '#catch' do
+      it 'provides an on_reject callback' do
+        result = nil
+        subject.catch { |reas| result = reas }
+
+        subject.reject(reason)
+        expect(result).to eq(reason)
+        expect(subject.reason).to eq(reason)
+      end
+    end
+
     describe '#progress' do
       let(:status) { double('status') }
 
