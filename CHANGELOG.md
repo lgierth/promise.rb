@@ -1,5 +1,22 @@
 # promise.rb changelog
 
+## 0.7.0.rc2 (February 17, 2016)
+
+### Bug Fixes
+
+* Avoid re-raising exception that occur in then callbacks (pull #13)
+* Wait for an instance of a subclass of Promise in Promise.all (pull #15)
+
+### Features
+
+* Instantiate exception classes and set missing backtrace in reject (pull #12)
+* Allow Promise#fulfill to be called with a promise (pull #14)
+
+### Breaking Changes
+
+* Make add_callback, dispatch, dispatch! and Promise::Callback private (pull #11)
+* Remove Promise#backtrace, use #reason.backtrace instead (pull #12)
+
 ## 0.7.0.rc1 (February 9, 2016)
 
 ### Bug Fixes
