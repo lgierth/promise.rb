@@ -1,5 +1,11 @@
 # promise.rb changelog
 
+## 0.7.0 (February 24, 2016)
+
+### Features
+
+* Add a Promise#rescue convenience for specifying on_reject. (pull #16)
+
 ## 0.7.0.rc2 (February 17, 2016)
 
 ### Bug Fixes
