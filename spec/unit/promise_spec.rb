@@ -576,5 +576,23 @@ describe Promise do
         expect(result.sync).to eq([1.0, 2])
       end
     end
+
+    describe '.map_value' do
+      it "yields the argument directly if it isn't a promise" do
+        p = Promise.map_value(2) { |v| v + 1 }
+        expect(p).to eq(3)
+      end
+
+      it 'uses .then on a promise argument using the given block' do
+        p = Promise.map_value(Promise.resolve(2)) { |v| v + 1 }
+        expect(p.sync).to eq(3)
+      end
+
+      it 'uses .then on a promise argument of another class' do
+        p1 = Class.new(Promise).resolve(2)
+        p2 = DelayedPromise.map_value(p1) { |v| v + 1 }
+        expect(p2.sync).to eq(3)
+      end
+    end
   end
 end
