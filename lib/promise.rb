@@ -22,6 +22,14 @@ class Promise
     Group.new(new, enumerable).promise
   end
 
+  def self.map_value(obj)
+    if obj.is_a?(Promise)
+      obj.then { |value| yield value }
+    else
+      yield obj
+    end
+  end
+
   def initialize
     @state = :pending
     @callbacks = []

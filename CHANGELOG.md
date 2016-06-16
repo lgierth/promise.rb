@@ -1,5 +1,11 @@
 # promise.rb changelog
 
+## 0.7.1 (June 15, 2016)
+
+### Features
+
+* Add Promise.map_value for chaining a promise or plain value
+
 ## 0.7.0 (February 24, 2016)
 
 ### Features
