@@ -5,13 +5,13 @@ if Gem.ruby_version >= Gem::Version.new('2.1')
   Devtools.init_rake_tasks
 
   tasks = %w[
-    metrics:coverage
     metrics:yardstick:verify
     metrics:rubocop
     metrics:flog
     metrics:reek
     spec:integration
   ]
+  tasks << 'metrics:coverage' unless RUBY_ENGINE == 'rbx'
   tasks << 'metrics:mutant' if RUBY_ENGINE == 'ruby'
   task :default => tasks
 else
