@@ -6,7 +6,7 @@ tested on MRI 1.9, 2.0, 2.1, 2.2, Rubinius, and JRuby.
 
 Similar projects:
 
-- [concurrent-ruby](https://github.com/jdantonio/concurrent-ruby), Promises/A(+) implementation, thread based
+- [concurrent-ruby](https://github.com/jdantonio/concurrent-ruby), Promises/A(+) inspired implementation, thread based
 - [ruby-thread](https://github.com/meh/ruby-thread), thread/mutex/condition variable based, thread safe
 - [promise](https://github.com/bhuga/promising-future), a.k.a. promising-future, classic promises and futures, thread based
 - [celluloid-promise](https://github.com/cotag/celluloid-promise), inspired by Q, backed by a Celluloid actor
