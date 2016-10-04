@@ -554,6 +554,12 @@ describe Promise do
         expect(new_promise).to be_fulfilled
         expect(new_promise.value).to eq(42)
       end
+
+      it 'can be passed no argument' do
+        promise = Promise.resolve
+        expect(promise.fulfilled?).to eq(true)
+        expect(promise.value).to eq(nil)
+      end
     end
 
     describe '.all' do

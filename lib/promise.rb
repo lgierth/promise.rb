@@ -15,7 +15,7 @@ class Promise
   attr_accessor :source
   attr_reader :state, :value, :reason
 
-  def self.resolve(obj)
+  def self.resolve(obj = nil)
     return obj if obj.is_a?(self)
     new.tap { |promise| promise.fulfill(obj) }
   end
