@@ -14,7 +14,7 @@ ParameterLists:
 
 MethodLength:
   CountComments: false
-  Max: 10
+  Max: 11
 
 # Avoid more than `Max` levels of nesting.
 BlockNesting:
@@ -67,6 +67,9 @@ SignalException:
 
 # Do not prefer do/end over {} for multiline blocks
 BlockDelimiters:
+  Enabled: false
+
+Metrics/BlockLength:
   Enabled: false
 
 # Allow empty lines around body

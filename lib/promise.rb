@@ -85,7 +85,7 @@ class Promise
         @value = value
       end
     end
-    nil
+    self
   end
 
   def reject(reason = nil)
@@ -94,6 +94,7 @@ class Promise
       @source = nil
       @reason = reason_coercion(reason || Error)
     end
+    self
   end
 
   # Override to support sync on a promise without a source or to wait
