@@ -6,7 +6,6 @@ rvm:
   - 2.1
   - 2.2
   - jruby
-  - rbx-3.14
 matrix:
   fast_finish: true
 before_install:

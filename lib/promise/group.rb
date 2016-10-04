@@ -17,7 +17,7 @@ class Promise
 
     def chain_inputs
       on_fulfill = method(:on_fulfill)
-      on_reject = promise.method(:reject)
+      on_reject = promise.public_method(:reject)
       each_promise do |input_promise|
         input_promise.then(on_fulfill, on_reject)
       end

@@ -6,7 +6,7 @@ require 'promise/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'promise.rb'
-  spec.version       = Promise::VERSION
+  spec.version       = Promise::VERSION.dup
   spec.authors       = ['Lars Gierth']
   spec.email         = ['lars.gierth@gmail.com']
   spec.description   = %q{Promises/A+ for Ruby}

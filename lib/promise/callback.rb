@@ -3,8 +3,8 @@
 class Promise
   class Callback
     def self.assume_state(source, target)
-      on_fulfill = target.method(:fulfill)
-      on_reject = target.method(:reject)
+      on_fulfill = target.public_method(:fulfill)
+      on_reject = target.public_method(:reject)
       source.then(on_fulfill, on_reject)
     end
 
