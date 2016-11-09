@@ -2,37 +2,34 @@
 
 class Promise
   class Callback
-    def self.assume_state(source, target)
-      on_fulfill = target.public_method(:fulfill)
-      on_reject = target.public_method(:reject)
-      source.then(on_fulfill, on_reject)
-    end
-
-    def initialize(promise, on_fulfill, on_reject, next_promise)
-      @promise = promise
+    def initialize(on_fulfill, on_reject, next_promise)
       @on_fulfill = on_fulfill
       @on_reject = on_reject
       @next_promise = next_promise
     end
 
-    def call
-      if @promise.fulfilled?
-        call_block(@on_fulfill, @promise.value)
+    def fulfill(value)
+      if @on_fulfill
+        call_block(@on_fulfill, value)
       else
-        call_block(@on_reject, @promise.reason)
+        @next_promise.fulfill(value)
       end
     end
 
-    def call_block(block, param)
-      if block
-        begin
-          @next_promise.fulfill(block.call(param))
-        rescue => ex
-          @next_promise.reject(ex)
-        end
+    def reject(reason)
+      if @on_reject
+        call_block(@on_reject, reason)
       else
-        self.class.assume_state(@promise, @next_promise)
+        @next_promise.reject(reason)
       end
+    end
+
+    private
+
+    def call_block(block, param)
+      @next_promise.fulfill(block.call(param))
+    rescue => ex
+      @next_promise.reject(ex)
     end
   end
   private_constant :Callback

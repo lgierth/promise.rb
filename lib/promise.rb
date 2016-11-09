@@ -51,7 +51,7 @@ class Promise
     on_fulfill ||= block
     next_promise = self.class.new
 
-    add_callback(Callback.new(self, on_fulfill, on_reject, next_promise))
+    add_callback(Callback.new(on_fulfill, on_reject, next_promise))
     next_promise
   end
 
@@ -68,7 +68,7 @@ class Promise
 
   def fulfill(value = nil)
     if Promise === value
-      Callback.assume_state(value, self)
+      value.add_callback(self)
     else
       dispatch do
         @state = :fulfilled
@@ -89,6 +89,16 @@ class Promise
     yield
   end
 
+  protected
+
+  def add_callback(callback)
+    if pending?
+      @callbacks << callback
+    else
+      dispatch!(callback)
+    end
+  end
+
   private
 
   def reason_coercion(reason)
@@ -101,14 +111,6 @@ class Promise
     reason
   end
 
-  def add_callback(callback)
-    if pending?
-      @callbacks << callback
-    else
-      dispatch!(callback)
-    end
-  end
-
   def dispatch
     if pending?
       yield
@@ -118,6 +120,12 @@ class Promise
   end
 
   def dispatch!(callback)
-    defer { callback.call }
+    defer do
+      if fulfilled?
+        callback.fulfill(value)
+      else
+        callback.reject(reason)
+      end
+    end
   end
 end
