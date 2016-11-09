@@ -11,6 +11,7 @@ class Promise
 
   include Promise::Progress
 
+  attr_accessor :source
   attr_reader :state, :value, :reason
 
   def self.resolve(obj)
@@ -72,6 +73,7 @@ class Promise
     else
       dispatch do
         @state = :fulfilled
+        @source = nil
         @value = value
       end
     end
@@ -81,19 +83,28 @@ class Promise
   def reject(reason = nil)
     dispatch do
       @state = :rejected
+      @source = nil
       @reason = reason_coercion(reason || Error)
     end
   end
 
-  def defer
-    yield
+  # Override to support sync on a promise without a source or to wait
+  # for deferred callbacks on the source
+  def wait
+    source.wait
   end
 
   protected
 
+  # Override to defer calling the callback for Promises/A+ spec compliance
+  def defer
+    yield
+  end
+
   def add_callback(callback)
     if pending?
       @callbacks << callback
+      callback.source = self
     else
       dispatch!(callback)
     end

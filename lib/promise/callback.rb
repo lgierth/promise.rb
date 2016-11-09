@@ -2,10 +2,13 @@
 
 class Promise
   class Callback
+    attr_accessor :source
+
     def initialize(on_fulfill, on_reject, next_promise)
       @on_fulfill = on_fulfill
       @on_reject = on_reject
       @next_promise = next_promise
+      @next_promise.source = self
     end
 
     def fulfill(value)
@@ -22,6 +25,10 @@ class Promise
       else
         @next_promise.reject(reason)
       end
+    end
+
+    def wait
+      source.wait
     end
 
     private

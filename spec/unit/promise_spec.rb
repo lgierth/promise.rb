@@ -476,6 +476,21 @@ describe Promise do
         expect(subject).not_to receive(:wait)
         expect(subject.sync).to be(value)
       end
+
+      it 'waits for source by default' do
+        PromiseLoader.lazy_load(subject) { subject.fulfill(1) }
+        p2 = subject.then { |v| v + 1 }
+        expect(p2).to be_pending
+        expect(p2.sync).to eq(2)
+        expect(p2.source).to eq(nil)
+      end
+
+      it 'waits for source rejection' do
+        PromiseLoader.lazy_load(subject) { subject.reject(reason) }
+        p2 = subject.then { |v| v + 1 }
+        expect { p2.sync }.to raise_error(reason)
+        expect(p2.source).to eq(nil)
+      end
     end
 
     describe '.resolve' do
@@ -574,6 +589,16 @@ describe Promise do
         expect(result).to be_pending
         p1.fulfill(1.0)
         expect(result.sync).to eq([1.0, 2])
+      end
+
+      it 'returns a promise that can sync promises of another class' do
+        p1 = DelayedPromise.new
+        DelayedPromise.deferred << -> { p1.fulfill('a') }
+
+        result = Promise.all([p1, Promise.resolve(:b), 3])
+
+        expect(result).to be_pending
+        expect(result.sync).to eq(['a', :b, 3])
       end
     end
 

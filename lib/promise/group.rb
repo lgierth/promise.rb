@@ -1,5 +1,6 @@
 class Promise
   class Group
+    attr_accessor :source
     attr_reader :promise
 
     def initialize(result_promise, inputs)
@@ -9,7 +10,14 @@ class Promise
       if @remaining.zero?
         promise.fulfill(inputs)
       else
+        promise.source = self
         chain_inputs
+      end
+    end
+
+    def wait
+      each_promise do |input_promise|
+        input_promise.wait if input_promise.pending?
       end
     end
 
