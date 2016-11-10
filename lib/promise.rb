@@ -8,6 +8,7 @@ require 'promise/group'
 
 class Promise
   Error = Class.new(RuntimeError)
+  BrokenError = Class.new(Error)
 
   include Promise::Progress
 
@@ -62,7 +63,10 @@ class Promise
   alias_method :catch, :rescue
 
   def sync
-    wait if pending?
+    if pending?
+      wait
+      raise BrokenError if pending?
+    end
     raise reason if rejected?
     value
   end
@@ -91,7 +95,11 @@ class Promise
   # Override to support sync on a promise without a source or to wait
   # for deferred callbacks on the source
   def wait
-    source.wait
+    while source
+      saved_source = source
+      saved_source.wait
+      break if saved_source.equal?(source)
+    end
   end
 
   protected
