@@ -514,6 +514,22 @@ describe Promise do
       end
     end
 
+    describe '.sync' do
+      it 'returns non-promise argument' do
+        expect(Promise.sync(42)).to eq(42)
+      end
+
+      it 'calls sync on promise argument' do
+        PromiseLoader.lazy_load(subject) { subject.fulfill(123) }
+        expect(Promise.sync(subject)).to eq(123)
+      end
+
+      it 'calls sync on promise of another class' do
+        promise = Class.new(Promise).resolve('a')
+        expect(Class.new(Promise).sync(promise)).to eq('a')
+      end
+    end
+
     describe '.resolve' do
       it 'returns a fulfilled promise from a non-promise' do
         promise = Promise.resolve(123)
