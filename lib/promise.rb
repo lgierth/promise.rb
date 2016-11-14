@@ -8,9 +8,11 @@ require 'promise/group'
 
 class Promise
   Error = Class.new(RuntimeError)
+  BrokenError = Class.new(Error)
 
   include Promise::Progress
 
+  attr_accessor :source
   attr_reader :state, :value, :reason
 
   def self.resolve(obj)
@@ -61,7 +63,10 @@ class Promise
   alias_method :catch, :rescue
 
   def sync
-    wait if pending?
+    if pending?
+      wait
+      raise BrokenError if pending?
+    end
     raise reason if rejected?
     value
   end
@@ -72,6 +77,7 @@ class Promise
     else
       dispatch do
         @state = :fulfilled
+        @source = nil
         @value = value
       end
     end
@@ -81,19 +87,32 @@ class Promise
   def reject(reason = nil)
     dispatch do
       @state = :rejected
+      @source = nil
       @reason = reason_coercion(reason || Error)
     end
   end
 
-  def defer
-    yield
+  # Override to support sync on a promise without a source or to wait
+  # for deferred callbacks on the source
+  def wait
+    while source
+      saved_source = source
+      saved_source.wait
+      break if saved_source.equal?(source)
+    end
   end
 
   protected
 
+  # Override to defer calling the callback for Promises/A+ spec compliance
+  def defer
+    yield
+  end
+
   def add_callback(callback)
     if pending?
       @callbacks << callback
+      callback.source = self
     else
       dispatch!(callback)
     end

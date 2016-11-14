@@ -476,6 +476,42 @@ describe Promise do
         expect(subject).not_to receive(:wait)
         expect(subject.sync).to be(value)
       end
+
+      it 'waits for source by default' do
+        PromiseLoader.lazy_load(subject) { subject.fulfill(1) }
+        p2 = subject.then { |v| v + 1 }
+        expect(p2).to be_pending
+        expect(p2.sync).to eq(2)
+        expect(p2.source).to eq(nil)
+      end
+
+      it 'waits for source that is fulfilled with a promise' do
+        PromiseLoader.lazy_load(subject) { subject.fulfill(1) }
+        p2 = subject.then do |v|
+          Promise.new.tap do |p3|
+            PromiseLoader.lazy_load(p3) { p3.fulfill(v + 1) }
+          end
+        end
+        expect(p2).to be_pending
+        expect(p2.sync).to eq(2)
+        expect(p2.source).to eq(nil)
+      end
+
+      it 'waits for source rejection' do
+        PromiseLoader.lazy_load(subject) { subject.reject(reason) }
+        p2 = subject.then { |v| v + 1 }
+        expect { p2.sync }.to raise_error(reason)
+        expect(p2.source).to eq(nil)
+      end
+
+      it 'raises for promise without a source by default' do
+        expect { subject.sync }.to raise_error(Promise::BrokenError)
+      end
+
+      it 'raises if source.wait leaves promise pending' do
+        PromiseLoader.lazy_load(subject) {}
+        expect { subject.sync }.to raise_error(Promise::BrokenError)
+      end
     end
 
     describe '.resolve' do
@@ -574,6 +610,30 @@ describe Promise do
         expect(result).to be_pending
         p1.fulfill(1.0)
         expect(result.sync).to eq([1.0, 2])
+      end
+
+      it 'returns a promise that can sync promises of another class' do
+        p1 = DelayedPromise.new
+        DelayedPromise.deferred << -> { p1.fulfill('a') }
+
+        result = Promise.all([p1, Promise.resolve(:b), 3])
+
+        expect(result).to be_pending
+        expect(result.sync).to eq(['a', :b, 3])
+      end
+
+      it 'sync on result does not call wait on resolved promises' do
+        p1 = Class.new(Promise) do
+          def wait
+            raise 'wait not expected'
+          end
+        end.resolve(:one)
+        p2 = DelayedPromise.new
+        DelayedPromise.deferred << -> { p2.fulfill(:two) }
+
+        result = Promise.all([p1, p2])
+
+        expect(result.sync).to eq([:one, :two])
       end
     end
 

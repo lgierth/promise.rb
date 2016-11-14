@@ -52,7 +52,7 @@ NilCheck:
 RepeatedConditional:
   enabled: true
   exclude: []
-  max_ifs: 3
+  max_ifs: 4
 TooManyInstanceVariables:
   enabled: true
   exclude: []
@@ -64,7 +64,7 @@ TooManyStatements:
   exclude:
   - initialize
   - each
-  max_statements: 5
+  max_statements: 6
 UncommunicativeMethodName:
   enabled: true
   exclude: []

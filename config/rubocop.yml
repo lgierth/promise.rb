@@ -99,3 +99,6 @@ GuardClause:
 
 Alias:
   EnforcedStyle: prefer_alias_method
+
+Metrics/ClassLength:
+  Enabled: false
