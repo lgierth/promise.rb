@@ -1,10 +1,17 @@
 # promise.rb changelog
 
+## 0.7.2 (November 15, 2016)
+
+### Features
+
+* Add support for calling sync on the result of Promise.all (pull #24)
+* Add Promise.sync to unwrap an object that may be a promise. (#25)
+
 ## 0.7.1 (June 15, 2016)
 
 ### Features
 
-* Add Promise.map_value for chaining a promise or plain value
+* Add Promise.map_value for chaining a promise or plain value (pull #17)
 
 ## 0.7.0 (February 24, 2016)
 
