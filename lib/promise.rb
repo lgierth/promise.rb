@@ -32,6 +32,10 @@ class Promise
     end
   end
 
+  def self.sync(obj)
+    obj.is_a?(Promise) ? obj.sync : obj
+  end
+
   def initialize
     @state = :pending
     @callbacks = []
