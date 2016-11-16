@@ -4,6 +4,7 @@
 Gemfile.lock
 pkg/
 *.rbc
+*.gem
 .yardoc/
 doc/
 coverage/
