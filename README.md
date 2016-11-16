@@ -158,6 +158,15 @@ Promise.new
   .then(nil, proc { |reason| p reason })
 ```
 
+In order to use the result of multiple promises, they can be grouped using
+`Promise.all` for chaining.
+
+```ruby
+sum_promise = Promise.all([promise1, promise2]).then do |value1, value2|
+  value1 + value2
+end
+```
+
 ### Progress callbacks
 
 Very simple progress callbacks, as per Promises/A, are supported as well. They have been dropped in A+, but I found them to be a useful mechanism - if kept simple. Callback dispatch happens immediately in the call to `#progress`, in the order of definition via `#on_progress`. Also note that `#on_progress` does not return a new promise for chaining - the progress mechanism is meant to be very lightweight, and ignores many of the constraints and guarantees of `then`.
