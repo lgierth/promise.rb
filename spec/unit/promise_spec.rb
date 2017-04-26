@@ -398,20 +398,8 @@ describe Promise do
     end
 
     describe '#fulfill' do
-      it 'returns itself to allow chaining with passed nothing' do
-        expect(subject.fulfill).to be(subject)
-      end
-
-      it 'returns itself to allow chaining with passed nil' do
+      it 'returns itself to allow chaining' do
         expect(subject.fulfill(nil)).to be(subject)
-      end
-
-      it 'returns itself to allow chaining with passed value' do
-        expect(subject.fulfill('value')).to be(subject)
-      end
-
-      it 'returns itself even when passing promise' do
-        expect(subject.fulfill(Promise.new)).to be(subject)
       end
 
       it 'does not require a value' do
@@ -433,7 +421,7 @@ describe Promise do
 
     describe '#reject' do
       it 'returns itself for easy chaning' do
-        expect(subject.reject(nil)).to eq(subject)
+        expect(subject.reject(nil)).to be(subject)
       end
 
       it 'does not require a reason' do
