@@ -1,11 +1,18 @@
 # promise.rb changelog
 
+## 0.7.3 (April 28, 2017)
+
+### Features
+
+* Allow to call Promise.resolve without argument (pull #21)
+* Return self from fulfill and reject (pull #22)
+
 ## 0.7.2 (November 15, 2016)
 
 ### Features
 
 * Add support for calling sync on the result of Promise.all (pull #24)
-* Add Promise.sync to unwrap an object that may be a promise. (#25)
+* Add Promise.sync to unwrap an object that may be a promise. (pull #25)
 
 ## 0.7.1 (June 15, 2016)
 
