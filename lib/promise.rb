@@ -76,24 +76,29 @@ class Promise
   end
 
   def fulfill(value = nil)
+    return self unless pending?
+
     if Promise === value
       value.add_callback(self)
     else
-      dispatch do
-        @state = :fulfilled
-        @source = nil
-        @value = value
-      end
+      @state = :fulfilled
+      @source = nil
+      @value = value
+
+      dispatch
     end
     self
   end
 
   def reject(reason = nil)
-    dispatch do
-      @state = :rejected
-      @source = nil
-      @reason = reason_coercion(reason || Error)
-    end
+    return self unless pending?
+
+    @state = :rejected
+    @source = nil
+    @reason = reason_coercion(reason || Error)
+
+    dispatch
+
     self
   end
 
@@ -136,11 +141,7 @@ class Promise
   end
 
   def dispatch
-    if pending?
-      yield
-      @callbacks.each { |callback| dispatch!(callback) }
-      nil
-    end
+    @callbacks.each { |callback| dispatch!(callback) }
   end
 
   def dispatch!(callback)
