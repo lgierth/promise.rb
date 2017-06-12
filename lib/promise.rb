@@ -13,7 +13,7 @@ class Promise
   include Promise::Progress
 
   attr_accessor :source
-  attr_reader :state, :value, :reason
+  attr_reader :value, :reason
 
   def self.resolve(obj = nil)
     return obj if obj.is_a?(self)
@@ -37,20 +37,19 @@ class Promise
   end
 
   def initialize
-    @state = :pending
     @callbacks = []
   end
 
   def pending?
-    state.equal?(:pending)
+    !defined?(@value) && !defined?(@reason)
   end
 
   def fulfilled?
-    state.equal?(:fulfilled)
+    !!defined?(@value)
   end
 
   def rejected?
-    state.equal?(:rejected)
+    !!defined?(@reason)
   end
 
   def then(on_fulfill = nil, on_reject = nil)
@@ -99,7 +98,6 @@ class Promise
         value.add_callback(self)
       end
     else
-      @state = :fulfilled
       @source = nil
       @value = value
 
@@ -111,7 +109,6 @@ class Promise
   def reject(reason = nil)
     return self unless pending?
 
-    @state = :rejected
     @source = nil
     @reason = reason_coercion(reason || Error)
 
