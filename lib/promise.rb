@@ -51,17 +51,24 @@ class Promise
   end
 
   def then(on_fulfill = nil, on_reject = nil)
-    on_fulfill = Proc.new if on_fulfill.nil? && block_given?
     next_promise = self.class.new
 
-    callback = Callback.new(on_fulfill, on_reject, next_promise)
-
     if fulfilled?
-      callback.fulfill(value)
+      if on_fulfill
+        next_promise.settle_from_handler(@value, &on_fulfill)
+      elsif block_given?
+        next_promise.settle_from_handler(@value) { |v| yield v }
+      else
+        next_promise.fulfill(@value)
+      end
     elsif rejected?
-      callback.reject(reason)
+      if on_reject
+        next_promise.settle_from_handler(@reason, &on_reject)
+      else
+        next_promise.reject(@reason)
+      end
     else
-      add_callback(callback)
+      add_callback(Callback.new(on_fulfill || (block_given? ? Proc.new : nil), on_reject, next_promise))
     end
 
     next_promise
@@ -129,6 +136,12 @@ class Promise
   # Override to defer calling the callback for Promises/A+ spec compliance
   def defer
     yield
+  end
+
+  def settle_from_handler(value)
+    fulfill(yield(value))
+  rescue => ex
+    reject(ex)
   end
 
   def add_callback(callback)
