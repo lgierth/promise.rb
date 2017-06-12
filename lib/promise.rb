@@ -57,7 +57,16 @@ class Promise
     on_fulfill = Proc.new if on_fulfill.nil? && block_given?
     next_promise = self.class.new
 
-    add_callback(Callback.new(on_fulfill, on_reject, next_promise))
+    callback = Callback.new(on_fulfill, on_reject, next_promise)
+
+    if fulfilled?
+      callback.fulfill(value)
+    elsif rejected?
+      callback.reject(reason)
+    else
+      add_callback(callback)
+    end
+
     next_promise
   end
 
@@ -78,8 +87,14 @@ class Promise
   def fulfill(value = nil)
     return self unless pending?
 
-    if Promise === value
-      value.add_callback(self)
+    if value.is_a?(Promise)
+      if value.fulfilled?
+        fulfill(value.value)
+      elsif value.rejected?
+        reject(value.reason)
+      else
+        value.add_callback(self)
+      end
     else
       @state = :fulfilled
       @source = nil
