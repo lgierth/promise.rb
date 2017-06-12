@@ -17,7 +17,7 @@ class Promise
 
   def self.resolve(obj = nil)
     return obj if obj.is_a?(self)
-    new.tap { |promise| promise.fulfill(obj) }
+    new.fulfill(obj)
   end
 
   def self.all(enumerable)
