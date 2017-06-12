@@ -3,56 +3,91 @@ class Promise
     attr_accessor :source
     attr_reader :promise
 
-    def initialize(result_promise, inputs)
-      @promise = result_promise
-      @inputs = inputs
-      @remaining = count_promises
-      if @remaining.zero?
-        promise.fulfill(inputs)
-      else
-        promise.source = self
-        chain_inputs
+    class Callback
+      def initialize(group, index)
+        @group = group
+        @index = index
+      end
+
+      attr_accessor :source
+
+      def fulfill(value)
+        @group.send(:promise_fulfilled, value, @index)
+      end
+
+      def reject(reason)
+        @group.send(:promise_rejected, reason, @index)
+      end
+
+      def wait
+        @source.wait if defined?(@source)
       end
     end
 
+    def initialize(promise, values)
+      promise.source = self
+
+      @promise = promise
+      @values = values.dup
+      @total_resolved = 0
+
+      iterate
+    end
+
     def wait
-      each_promise do |input_promise|
-        input_promise.wait if input_promise.pending?
+      return if resolved?
+
+      @values.each do |obj|
+        obj.wait if obj.is_a?(Promise) && obj.pending?
       end
     end
 
     private
 
-    def chain_inputs
-      on_fulfill = method(:on_fulfill)
-      on_reject = promise.public_method(:reject)
-      each_promise do |input_promise|
-        input_promise.then(on_fulfill, on_reject)
+    def resolved?
+      @values.length == @total_resolved
+    end
+
+    def iterate
+      @values.each_with_index do |maybe_promise, index|
+        break if resolved?
+
+        if maybe_promise.is_a? Promise
+          if maybe_promise.fulfilled?
+            promise_fulfilled(maybe_promise.value, index)
+          elsif maybe_promise.rejected?
+            promise_rejected(maybe_promise.reason)
+            break
+          else
+            maybe_promise.send :add_callback, Callback.new(self, index)
+          end
+        else
+          @total_resolved += 1
+          fulfill if resolved?
+        end
       end
     end
 
-    def on_fulfill(_result)
-      @remaining -= 1
-      if @remaining.zero?
-        result = @inputs.map { |obj| promise?(obj) ? obj.value : obj }
-        promise.fulfill(result)
-      end
+    def fulfill
+      @promise.fulfill(@values)
+      remove_instance_variable :@values
     end
 
-    def promise?(obj)
-      obj.is_a?(Promise)
+    def reject(reason)
+      @promise.reject(reason)
+      remove_instance_variable :@values
     end
 
-    def count_promises
-      count = 0
-      each_promise { count += 1 }
-      count
+    def promise_fulfilled(value, index)
+      @total_resolved += 1
+      @values[index] = value
+
+      fulfill if resolved?
     end
 
-    def each_promise
-      @inputs.each do |obj|
-        yield obj if promise?(obj)
-      end
+    def promise_rejected(reason, _)
+      @total_resolved += 1
+      reject(reason)
     end
   end
   private_constant :Group
