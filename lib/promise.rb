@@ -96,10 +96,7 @@ class Promise
     else
       @source = nil
       @value = value
-
-      if defined?(@callbacks)
-        @callbacks.each { |callback| defer { callback.fulfill(@value) } }
-      end
+      fulfill_promises
     end
 
     self
@@ -110,10 +107,7 @@ class Promise
 
     @source = nil
     @reason = reason_coercion(reason || Error)
-
-    if defined?(@callbacks)
-      @callbacks.each { |callback| defer { callback.reject(@reason) } }
-    end
+    reject_promises
 
     self
   end
@@ -142,6 +136,18 @@ class Promise
   end
 
   private
+
+  def fulfill_promises
+    return unless defined?(@callbacks)
+
+    @callbacks.each { |callback| defer { callback.fulfill(@value) } }
+  end
+
+  def reject_promises
+    return unless defined?(@callbacks)
+
+    @callbacks.each { |callback| defer { callback.reject(@reason) } }
+  end
 
   def reason_coercion(reason)
     case reason
