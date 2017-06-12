@@ -96,7 +96,7 @@ class Promise
         value.add_callback(self)
       end
     else
-      @source = nil
+      remove_instance_variable :@source if defined?(@source)
       @value = value
       fulfill_promises
     end
@@ -107,7 +107,7 @@ class Promise
   def reject(reason = nil)
     return self unless pending?
 
-    @source = nil
+    remove_instance_variable :@source if defined?(@source)
     @reason = reason_coercion(reason || Error)
     reject_promises
 
