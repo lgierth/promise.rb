@@ -53,8 +53,8 @@ class Promise
     state.equal?(:rejected)
   end
 
-  def then(on_fulfill = nil, on_reject = nil, &block)
-    on_fulfill ||= block
+  def then(on_fulfill = nil, on_reject = nil)
+    on_fulfill = Proc.new if on_fulfill.nil? && block_given?
     next_promise = self.class.new
 
     add_callback(Callback.new(on_fulfill, on_reject, next_promise))
