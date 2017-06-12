@@ -135,12 +135,8 @@ class Promise
   end
 
   def add_callback(callback)
-    if pending?
-      @callbacks << callback
-      callback.source = self
-    else
-      dispatch!(callback)
-    end
+    @callbacks << callback
+    callback.source = self
   end
 
   private
