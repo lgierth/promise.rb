@@ -143,12 +143,16 @@ class Promise
     return unless defined?(@callbacks)
 
     @callbacks.each { |callback| defer { callback.fulfill(@value) } }
+
+    remove_instance_variable :@callbacks
   end
 
   def reject_promises
     return unless defined?(@callbacks)
 
     @callbacks.each { |callback| defer { callback.reject(@reason) } }
+
+    remove_instance_variable :@callbacks
   end
 
   def reason_coercion(reason)
