@@ -101,8 +101,9 @@ class Promise
       @source = nil
       @value = value
 
-      dispatch
+      @callbacks.each { |callback| defer { callback.fulfill(@value) } }
     end
+
     self
   end
 
@@ -112,7 +113,7 @@ class Promise
     @source = nil
     @reason = reason_coercion(reason || Error)
 
-    dispatch
+    @callbacks.each { |callback| defer { callback.reject(@reason) } }
 
     self
   end
@@ -149,19 +150,5 @@ class Promise
       reason = reason_coercion(reason.new) if reason <= Exception
     end
     reason
-  end
-
-  def dispatch
-    @callbacks.each { |callback| dispatch!(callback) }
-  end
-
-  def dispatch!(callback)
-    defer do
-      if fulfilled?
-        callback.fulfill(value)
-      else
-        callback.reject(reason)
-      end
-    end
   end
 end
