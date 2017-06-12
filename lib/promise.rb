@@ -76,12 +76,15 @@ class Promise
   alias_method :catch, :rescue
 
   def sync
-    if pending?
-      wait
-      raise BrokenError if pending?
-    end
+    return value if fulfilled?
     raise reason if rejected?
-    value
+
+    wait
+
+    return value if fulfilled?
+    raise reason if rejected?
+
+    raise BrokenError
   end
 
   def fulfill(value = nil)
