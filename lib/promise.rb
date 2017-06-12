@@ -36,10 +36,6 @@ class Promise
     obj.is_a?(Promise) ? obj.sync : obj
   end
 
-  def initialize
-    @callbacks = []
-  end
-
   def pending?
     !defined?(@value) && !defined?(@reason)
   end
@@ -101,7 +97,9 @@ class Promise
       @source = nil
       @value = value
 
-      @callbacks.each { |callback| defer { callback.fulfill(@value) } }
+      if defined?(@callbacks)
+        @callbacks.each { |callback| defer { callback.fulfill(@value) } }
+      end
     end
 
     self
@@ -113,7 +111,9 @@ class Promise
     @source = nil
     @reason = reason_coercion(reason || Error)
 
-    @callbacks.each { |callback| defer { callback.reject(@reason) } }
+    if defined?(@callbacks)
+      @callbacks.each { |callback| defer { callback.reject(@reason) } }
+    end
 
     self
   end
@@ -136,6 +136,7 @@ class Promise
   end
 
   def add_callback(callback)
+    @callbacks = [] unless defined?(@callbacks)
     @callbacks << callback
     callback.source = self
   end
