@@ -2,7 +2,6 @@
 
 require 'promise/version'
 
-require 'promise/callback'
 require 'promise/progress'
 require 'promise/group'
 
@@ -68,9 +67,8 @@ class Promise
         next_promise.reject(@reason)
       end
     else
-      callback = Callback.new(on_fulfill || (block_given? ? Proc.new : nil), on_reject, next_promise)
       next_promise.source = self
-      add_callback(callback)
+      add_callback(next_promise, on_fulfill || (block_given? ? Proc.new : nil), on_reject)
     end
 
     next_promise
@@ -102,8 +100,8 @@ class Promise
       elsif value.rejected?
         reject(value.reason)
       else
-        value.add_callback(self)
         self.source = value
+        value.add_callback(self, nil, nil)
       end
     else
       remove_instance_variable :@source if defined?(@source)
@@ -147,9 +145,25 @@ class Promise
     reject(ex)
   end
 
-  def add_callback(callback)
+  def add_callback(callback, on_fulfill_arg, on_reject_arg)
     @callbacks = [] unless defined?(@callbacks)
-    @callbacks << callback
+    @callbacks.push(callback, on_fulfill_arg, on_reject_arg)
+  end
+
+  def promise_fulfilled(value, on_fulfill)
+    if on_fulfill
+      settle_from_handler(value, &on_fulfill)
+    else
+      fulfill(value)
+    end
+  end
+
+  def promise_rejected(reason, on_reject)
+    if on_reject
+      settle_from_handler(reason, &on_reject)
+    else
+      reject(reason)
+    end
   end
 
   private
@@ -157,7 +171,9 @@ class Promise
   def fulfill_promises
     return unless defined?(@callbacks)
 
-    @callbacks.each { |callback| defer { callback.fulfill(@value) } }
+    @callbacks.each_slice(3) do |callback, on_fulfill_arg, _|
+      defer { callback.send(:promise_fulfilled, @value, on_fulfill_arg) }
+    end
 
     remove_instance_variable :@callbacks
   end
@@ -165,7 +181,9 @@ class Promise
   def reject_promises
     return unless defined?(@callbacks)
 
-    @callbacks.each { |callback| defer { callback.reject(@reason) } }
+    @callbacks.each_slice(3) do |callback, _, on_reject_arg|
+      defer { callback.send(:promise_rejected, @reason, on_reject_arg) }
+    end
 
     remove_instance_variable :@callbacks
   end

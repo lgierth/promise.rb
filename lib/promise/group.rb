@@ -1,22 +1,5 @@
 class Promise
   class Group
-    class Callback
-      def initialize(group, index)
-        @group = group
-        @index = index
-      end
-
-      attr_accessor :source
-
-      def fulfill(value)
-        @group.send(:promise_fulfilled, value, @index)
-      end
-
-      def reject(reason)
-        @group.send(:promise_rejected, reason, @index)
-      end
-    end
-
     attr_reader :promise
 
     def initialize(promise, values)
@@ -37,10 +20,24 @@ class Promise
       end
     end
 
+    protected
+
+    def promise_fulfilled(value, index)
+      @total_resolved += 1
+      @values[index] = value
+
+      fulfill if resolved?
+    end
+
+    def promise_rejected(reason, _)
+      @total_resolved += 1
+      reject(reason)
+    end
+
     private
 
     def resolved?
-      @values.length == @total_resolved
+      defined?(@values) && @values.length == @total_resolved
     end
 
     def iterate
@@ -51,10 +48,10 @@ class Promise
           if maybe_promise.fulfilled?
             promise_fulfilled(maybe_promise.value, index)
           elsif maybe_promise.rejected?
-            promise_rejected(maybe_promise.reason)
+            promise_rejected(maybe_promise.reason, nil)
             break
           else
-            maybe_promise.send :add_callback, Callback.new(self, index)
+            maybe_promise.send :add_callback, self, index, nil
           end
         else
           @total_resolved += 1
@@ -72,18 +69,7 @@ class Promise
       @promise.reject(reason)
       remove_instance_variable :@values
     end
-
-    def promise_fulfilled(value, index)
-      @total_resolved += 1
-      @values[index] = value
-
-      fulfill if resolved?
-    end
-
-    def promise_rejected(reason, _)
-      @total_resolved += 1
-      reject(reason)
-    end
   end
+
   private_constant :Group
 end
