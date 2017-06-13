@@ -103,14 +103,15 @@ class Promise
         @target = @source = value.target
         @target.add_callback(self, nil, nil)
 
-        if defined?(@callbacks)
+        if @callbacks
           @target.migrate_callbacks(@callbacks)
-          remove_instance_variable :@callbacks
+          @callbacks = nil
         end
       end
     else
-      remove_instance_variable :@source if defined?(@source)
-      remove_instance_variable :@target if defined?(@target)
+      @source &&= nil
+      @target &&= nil
+
       @value = value
       fulfill_promises
     end
@@ -121,8 +122,8 @@ class Promise
   def reject(reason = nil)
     return self unless pending?
 
-    remove_instance_variable :@source if defined?(@source)
-    remove_instance_variable :@target if defined?(@target)
+    @source &&= nil
+    @target &&= nil
 
     @reason = reason_coercion(reason || Error)
     reject_promises
@@ -154,11 +155,11 @@ class Promise
   end
 
   def target
-    defined?(@target) ? @target.target : self
+    @target ? @target.target : self
   end
 
   def add_callback(callback, on_fulfill_arg, on_reject_arg)
-    @callbacks = [] unless defined?(@callbacks)
+    @callbacks ||= []
     @callbacks.push(callback, on_fulfill_arg, on_reject_arg)
   end
 
@@ -185,23 +186,23 @@ class Promise
   private
 
   def fulfill_promises
-    return unless defined?(@callbacks)
+    return unless @callbacks
 
     @callbacks.each_slice(3) do |callback, on_fulfill_arg, _|
       defer { callback.send(:promise_fulfilled, @value, on_fulfill_arg) }
     end
 
-    remove_instance_variable :@callbacks
+    @callbacks = nil
   end
 
   def reject_promises
-    return unless defined?(@callbacks)
+    return unless @callbacks
 
     @callbacks.each_slice(3) do |callback, _, on_reject_arg|
       defer { callback.send(:promise_rejected, @reason, on_reject_arg) }
     end
 
-    remove_instance_variable :@callbacks
+    @callbacks = nil
   end
 
   def reason_coercion(reason)

@@ -37,7 +37,7 @@ class Promise
     private
 
     def resolved?
-      defined?(@values) && @values.length == @total_resolved
+      @values && @values.length == @total_resolved
     end
 
     def iterate
@@ -63,12 +63,12 @@ class Promise
 
     def fulfill
       @promise.fulfill(@values)
-      remove_instance_variable :@values
+      @values = nil
     end
 
     def reject(reason)
       @promise.reject(reason)
-      remove_instance_variable :@values
+      @values = nil
     end
   end
 
