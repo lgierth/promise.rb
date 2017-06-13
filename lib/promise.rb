@@ -38,21 +38,22 @@ class Promise
   end
 
   def pending?
-    !defined?(@value) && !defined?(@reason)
+    !@state
   end
 
   def fulfilled?
-    !!defined?(@value)
+    @state.equal?(:fulfilled)
   end
 
   def rejected?
-    !!defined?(@reason)
+    @state.equal?(:rejected)
   end
 
   def then(on_fulfill = nil, on_reject = nil)
     next_promise = self.class.new
 
-    if fulfilled?
+    case @state
+    when :fulfilled
       if on_fulfill
         next_promise.settle_from_handler(@value, &on_fulfill)
       elsif block_given?
@@ -60,7 +61,7 @@ class Promise
       else
         next_promise.fulfill(@value)
       end
-    elsif rejected?
+    when :rejected
       if on_reject
         next_promise.settle_from_handler(@reason, &on_reject)
       else
@@ -80,13 +81,21 @@ class Promise
   alias_method :catch, :rescue
 
   def sync
-    return value if fulfilled?
-    raise reason if rejected?
+    case @state
+    when :fulfilled
+      return @value
+    when :rejected
+      raise @reason
+    end
 
     wait
 
-    return value if fulfilled?
-    raise reason if rejected?
+    case @state
+    when :fulfilled
+      return @value
+    when :rejected
+      raise @reason
+    end
 
     raise BrokenError
   end
@@ -95,9 +104,10 @@ class Promise
     return self unless pending?
 
     if value.is_a?(Promise)
-      if value.fulfilled?
+      case value.state
+      when :fulfilled
         fulfill(value.value)
-      elsif value.rejected?
+      when :rejected
         reject(value.reason)
       else
         @target = @source = value.target
@@ -113,6 +123,8 @@ class Promise
       @target &&= nil
 
       @value = value
+      @state = :fulfilled
+
       fulfill_promises
     end
 
@@ -126,6 +138,8 @@ class Promise
     @target &&= nil
 
     @reason = reason_coercion(reason || Error)
+    @state = :rejected
+
     reject_promises
 
     self
@@ -142,6 +156,8 @@ class Promise
   end
 
   protected
+
+  attr_reader :state
 
   # Override to defer calling the callback for Promises/A+ spec compliance
   def defer
