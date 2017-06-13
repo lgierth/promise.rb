@@ -30,7 +30,6 @@ class Promise
     end
 
     def promise_rejected(reason, _)
-      @total_resolved += 1
       reject(reason)
     end
 
@@ -42,23 +41,23 @@ class Promise
 
     def iterate
       @values.each_with_index do |maybe_promise, index|
-        break if resolved?
-
         if maybe_promise.is_a? Promise
-          if maybe_promise.fulfilled?
-            promise_fulfilled(maybe_promise.value, index)
-          elsif maybe_promise.rejected?
-            promise_rejected(maybe_promise.reason, nil)
-            break
+          case maybe_promise.send(:state)
+          when :fulfilled
+            @total_resolved += 1
+            @values[index] = maybe_promise.value
+          when :rejected
+            return reject(maybe_promise.reason)
           else
             target = maybe_promise.send(:target)
             target.send(:add_callback, self, index, nil)
           end
         else
           @total_resolved += 1
-          fulfill if resolved?
         end
       end
+
+      fulfill if resolved?
     end
 
     def fulfill
