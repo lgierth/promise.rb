@@ -1,7 +1,9 @@
-require "promise"
-require "benchmark/ips"
-require "benchmark/memory"
-require "memory_profiler"
+# frozen_string_literal: true
+
+require 'promise'
+require 'benchmark/ips'
+require 'benchmark/memory'
+require 'memory_profiler'
 
 module PromiseBenchmark
   module_function
