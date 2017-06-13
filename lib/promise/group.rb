@@ -51,7 +51,8 @@ class Promise
             promise_rejected(maybe_promise.reason, nil)
             break
           else
-            maybe_promise.send :add_callback, self, index, nil
+            target = maybe_promise.send(:target)
+            target.send(:add_callback, self, index, nil)
           end
         else
           @total_resolved += 1

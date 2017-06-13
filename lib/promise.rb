@@ -67,8 +67,8 @@ class Promise
         next_promise.reject(@reason)
       end
     else
-      next_promise.source = self
-      add_callback(next_promise, on_fulfill || (block_given? ? Proc.new : nil), on_reject)
+      next_promise.source = target
+      target.add_callback(next_promise, on_fulfill || (block_given? ? Proc.new : nil), on_reject)
     end
 
     next_promise
@@ -100,11 +100,17 @@ class Promise
       elsif value.rejected?
         reject(value.reason)
       else
-        self.source = value
-        value.add_callback(self, nil, nil)
+        @target = @source = value.target
+        @target.add_callback(self, nil, nil)
+
+        if defined?(@callbacks)
+          @target.migrate_callbacks(@callbacks)
+          remove_instance_variable :@callbacks
+        end
       end
     else
       remove_instance_variable :@source if defined?(@source)
+      remove_instance_variable :@target if defined?(@target)
       @value = value
       fulfill_promises
     end
@@ -116,6 +122,8 @@ class Promise
     return self unless pending?
 
     remove_instance_variable :@source if defined?(@source)
+    remove_instance_variable :@target if defined?(@target)
+
     @reason = reason_coercion(reason || Error)
     reject_promises
 
@@ -145,9 +153,17 @@ class Promise
     reject(ex)
   end
 
+  def target
+    defined?(@target) ? @target.target : self
+  end
+
   def add_callback(callback, on_fulfill_arg, on_reject_arg)
     @callbacks = [] unless defined?(@callbacks)
     @callbacks.push(callback, on_fulfill_arg, on_reject_arg)
+  end
+
+  def migrate_callbacks(callbacks)
+    @callbacks.concat(callbacks)
   end
 
   def promise_fulfilled(value, on_fulfill)
