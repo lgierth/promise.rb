@@ -38,7 +38,7 @@ class Promise
 
   def initialize
     @state = :pending
-    @callbacks = []
+    @callbacks = nil
   end
 
   def pending?
@@ -116,7 +116,7 @@ class Promise
 
   def add_callback(callback)
     if pending?
-      @callbacks << callback
+      @callbacks = lazy_array_append(@callbacks, callback)
       callback.source = self
     else
       dispatch!(callback)
@@ -124,6 +124,24 @@ class Promise
   end
 
   private
+
+  def lazy_array_append(lazy_array, new_item)
+    if lazy_array.instance_of?(Array)
+      lazy_array << new_item
+    elsif lazy_array
+      [lazy_array, new_item]
+    else
+      new_item
+    end
+  end
+
+  def lazy_array_each(lazy_array)
+    if lazy_array.instance_of?(Array)
+      lazy_array.each { |item| yield item }
+    elsif lazy_array
+      yield lazy_array
+    end
+  end
 
   def reason_coercion(reason)
     case reason
@@ -138,7 +156,7 @@ class Promise
   def dispatch
     if pending?
       yield
-      @callbacks.each { |callback| dispatch!(callback) }
+      lazy_array_each(@callbacks) { |callback| dispatch!(callback) }
       nil
     end
   end
