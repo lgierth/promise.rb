@@ -13,7 +13,7 @@ class Promise
 
     def fulfill(value)
       if @on_fulfill
-        call_block(@on_fulfill, value)
+        @next_promise.send(:settle_from_handler, value, &@on_fulfill)
       else
         @next_promise.fulfill(value)
       end
@@ -21,7 +21,7 @@ class Promise
 
     def reject(reason)
       if @on_reject
-        call_block(@on_reject, reason)
+        @next_promise.send(:settle_from_handler, reason, &@on_reject)
       else
         @next_promise.reject(reason)
       end
@@ -29,14 +29,6 @@ class Promise
 
     def wait
       source.wait
-    end
-
-    private
-
-    def call_block(block, param)
-      @next_promise.fulfill(block.call(param))
-    rescue => ex
-      @next_promise.reject(ex)
     end
   end
   private_constant :Callback
