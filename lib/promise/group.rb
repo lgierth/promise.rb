@@ -1,8 +1,5 @@
 class Promise
   class Group
-    attr_accessor :source
-    attr_reader :promise
-
     class Callback
       def initialize(group, index)
         @group = group
@@ -18,11 +15,9 @@ class Promise
       def reject(reason)
         @group.send(:promise_rejected, reason, @index)
       end
-
-      def wait
-        @source.wait if defined?(@source)
-      end
     end
+
+    attr_reader :promise
 
     def initialize(promise, values)
       promise.source = self

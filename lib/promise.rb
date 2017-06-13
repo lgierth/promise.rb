@@ -68,7 +68,9 @@ class Promise
         next_promise.reject(@reason)
       end
     else
-      add_callback(Callback.new(on_fulfill || (block_given? ? Proc.new : nil), on_reject, next_promise))
+      callback = Callback.new(on_fulfill || (block_given? ? Proc.new : nil), on_reject, next_promise)
+      next_promise.source = self
+      add_callback(callback)
     end
 
     next_promise
@@ -101,6 +103,7 @@ class Promise
         reject(value.reason)
       else
         value.add_callback(self)
+        self.source = value
       end
     else
       remove_instance_variable :@source if defined?(@source)
@@ -147,7 +150,6 @@ class Promise
   def add_callback(callback)
     @callbacks = [] unless defined?(@callbacks)
     @callbacks << callback
-    callback.source = self
   end
 
   private
