@@ -155,9 +155,11 @@ class Promise
     end
   end
 
-  protected
+  def state
+    @state || :pending
+  end
 
-  attr_reader :state
+  protected
 
   # Override to defer calling the callback for Promises/A+ spec compliance
   def defer
