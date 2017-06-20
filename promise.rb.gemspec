@@ -19,4 +19,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'benchmark-ips'
+  spec.add_development_dependency 'benchmark-memory'
+  spec.add_development_dependency 'memory_profiler'
 end
