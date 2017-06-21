@@ -19,3 +19,9 @@ else
   RSpec::Core::RakeTask.new(:spec)
   task :default => :spec
 end
+
+
+desc "Run the benchmark suite in benchmark/run.rb"
+task :benchmark do
+  require "./benchmark/run.rb"
+end
