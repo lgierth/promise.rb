@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+ENV['RUBYOPT'] = "#{ENV['RUBYOPT']} -w"
+
 if Gem.ruby_version >= Gem::Version.new('2.1')
   require 'devtools'
   Devtools.init_rake_tasks
