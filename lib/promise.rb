@@ -17,7 +17,7 @@ class Promise
 
   def self.resolve(obj = nil)
     return obj if obj.is_a?(self)
-    new.tap { |promise| promise.fulfill(obj) }
+    new.fulfill(obj)
   end
 
   def self.all(enumerable)
@@ -65,6 +65,15 @@ class Promise
     self.then(nil, block)
   end
   alias_method :catch, :rescue
+
+  def tap
+    return self.then unless block_given?
+
+    self.then do |value|
+      maybe_promise = yield value
+      maybe_promise.is_a?(Promise) ? maybe_promise.then { value } : value
+    end
+  end
 
   def sync
     if pending?
