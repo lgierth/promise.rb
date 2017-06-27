@@ -736,6 +736,38 @@ describe Promise do
         expect(result).to eq(reason)
         expect(subject.reason).to eq(reason)
       end
+
+      it 'allows specifying a list of error types' do
+        result = nil
+        p = subject.rescue(StandardError) do |reason|
+          result = reason
+        end
+
+        subject.reject(reason)
+        expect(result).to eq(reason)
+        expect(subject.reason).to eq(reason)
+        expect(p).to be_fulfilled
+
+        result = nil
+        p = subject.rescue(RuntimeError) do |reason|
+          result = reason
+        end
+
+        subject.reject(reason)
+        expect(result).to be_nil
+        expect(subject.reason).to eq(reason)
+        expect(p).to be_rejected
+
+        result = nil
+        p = subject.rescue(RuntimeError, StandardError) do |reason|
+          result = reason
+        end
+
+        subject.reject(reason)
+        expect(result).to eq(reason)
+        expect(subject.reason).to eq(reason)
+        expect(p).to be_fulfilled
+      end
     end
 
     describe '#catch' do
@@ -746,6 +778,32 @@ describe Promise do
         subject.reject(reason)
         expect(result).to eq(reason)
         expect(subject.reason).to eq(reason)
+      end
+
+      it 'allows specifying a list of error types' do
+        result = nil
+        p = subject.catch(StandardError) { |reas| result = reas }
+
+        subject.reject(reason)
+        expect(result).to eq(reason)
+        expect(subject.reason).to eq(reason)
+        expect(p).to be_fulfilled
+
+        result = nil
+        p = subject.catch(RuntimeError) { |reas| result = reas }
+
+        subject.reject(reason)
+        expect(result).to be_nil
+        expect(subject.reason).to eq(reason)
+        expect(p).to be_rejected
+
+        result = nil
+        p = subject.catch(RuntimeError, StandardError) { |reas| result = reas }
+
+        subject.reject(reason)
+        expect(result).to eq(reason)
+        expect(subject.reason).to eq(reason)
+        expect(p).to be_fulfilled
       end
     end
 

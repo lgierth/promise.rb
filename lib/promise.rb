@@ -70,8 +70,16 @@ class Promise
     next_promise
   end
 
-  def rescue(&block)
-    self.then(nil, block)
+  def rescue(*args, &block)
+    if !args.empty?
+      self.then(nil, lambda do |error|
+        raise error unless args.any? { |error_class| error.is_a?(error_class) }
+
+        yield error
+      end)
+    else
+      self.then(nil, block)
+    end
   end
   alias_method :catch, :rescue
 
