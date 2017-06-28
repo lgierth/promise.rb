@@ -109,10 +109,11 @@ class Promise
       when :rejected
         reject(value.reason)
       else
-        @target = @source = value.target
-        @target.add_callback(self, nil, nil)
+        @source = value.target
+        @source.add_callback(self, nil, nil)
 
-        if @callbacks && @target.instance_of?(self.class)
+        if @callbacks && @source.instance_of?(self.class)
+          @target = @source
           @target.migrate_callbacks(@callbacks)
           @callbacks = nil
         end
