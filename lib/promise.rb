@@ -112,7 +112,7 @@ class Promise
         @target = @source = value.target
         @target.add_callback(self, nil, nil)
 
-        if @callbacks
+        if @callbacks && @target.instance_of?(self.class)
           @target.migrate_callbacks(@callbacks)
           @callbacks = nil
         end
