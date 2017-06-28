@@ -42,7 +42,7 @@ class Promise
     def iterate
       @values.each_with_index do |maybe_promise, index|
         if maybe_promise.is_a? Promise
-          case maybe_promise.send(:state)
+          case maybe_promise.state
           when :fulfilled
             @total_resolved += 1
             @values[index] = maybe_promise.value
