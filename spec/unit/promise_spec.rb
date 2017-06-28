@@ -42,10 +42,6 @@ describe Promise do
       subject.fulfill(other_value)
       expect(subject.value).to eq(value)
     end
-
-    it 'freezes the value' do
-      skip 'Dropped in 74da6e9'
-    end
   end
 
   describe '3.1.3 rejected' do
@@ -61,10 +57,6 @@ describe Promise do
 
       subject.reject(other_reason)
       expect(subject.reason).to eq(reason)
-    end
-
-    it 'freezes the reason' do
-      skip 'Dropped in 74da6e9'
     end
   end
 
