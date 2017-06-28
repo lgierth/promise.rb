@@ -20,8 +20,6 @@ class Promise
       end
     end
 
-    protected
-
     def promise_fulfilled(value, index)
       @total_resolved += 1
       @values[index] = value

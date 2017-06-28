@@ -206,7 +206,7 @@ class Promise
     return unless @callbacks
 
     @callbacks.each_slice(3) do |callback, on_fulfill_arg, _|
-      defer { callback.send(:promise_fulfilled, @value, on_fulfill_arg) }
+      defer { callback.promise_fulfilled(@value, on_fulfill_arg) }
     end
 
     @callbacks = nil
@@ -216,7 +216,7 @@ class Promise
     return unless @callbacks
 
     @callbacks.each_slice(3) do |callback, _, on_reject_arg|
-      defer { callback.send(:promise_rejected, @reason, on_reject_arg) }
+      defer { callback.promise_rejected(@reason, on_reject_arg) }
     end
 
     @callbacks = nil
