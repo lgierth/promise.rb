@@ -53,17 +53,17 @@ class Promise
     case @state
     when :fulfilled
       if on_fulfill
-        next_promise.settle_from_handler(@value, &on_fulfill)
+        defer { next_promise.settle_from_handler(@value, &on_fulfill) }
       elsif block_given?
-        next_promise.settle_from_handler(@value) { |v| yield v }
+        defer { next_promise.settle_from_handler(@value) { |v| yield v } }
       else
-        next_promise.fulfill(@value)
+        defer { next_promise.fulfill(@value) }
       end
     when :rejected
       if on_reject
-        next_promise.settle_from_handler(@reason, &on_reject)
+        defer { next_promise.settle_from_handler(@reason, &on_reject) }
       else
-        next_promise.reject(@reason)
+        defer { next_promise.reject(@reason) }
       end
     else
       next_promise.source = target
