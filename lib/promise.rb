@@ -20,8 +20,6 @@ class Promise
   end
 
   def self.all(enumerable)
-    return new.fulfill([]) if enumerable.empty?
-
     Group.new(new, enumerable).promise
   end
 
