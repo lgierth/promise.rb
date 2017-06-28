@@ -68,7 +68,7 @@ class Promise
     else
       next_promise.source = target
       on_fulfill ||= Proc.new if block_given?
-      target.add_callback(next_promise, on_fulfill, on_reject)
+      add_callback(next_promise, on_fulfill, on_reject)
     end
 
     next_promise
@@ -176,8 +176,12 @@ class Promise
   end
 
   def add_callback(callback, on_fulfill_arg, on_reject_arg)
-    @callbacks ||= []
-    @callbacks.push(callback, on_fulfill_arg, on_reject_arg)
+    if @target
+      @target.add_callback(callback, on_fulfill_arg, on_reject_arg)
+    else
+      @callbacks ||= []
+      @callbacks.push(callback, on_fulfill_arg, on_reject_arg)
+    end
   end
 
   def migrate_callbacks(callbacks)
