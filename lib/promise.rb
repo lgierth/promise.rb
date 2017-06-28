@@ -67,7 +67,8 @@ class Promise
       end
     else
       next_promise.source = target
-      target.add_callback(next_promise, on_fulfill || (block_given? ? Proc.new : nil), on_reject)
+      on_fulfill ||= Proc.new if block_given?
+      target.add_callback(next_promise, on_fulfill, on_reject)
     end
 
     next_promise
