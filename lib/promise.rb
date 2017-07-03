@@ -80,14 +80,7 @@ class Promise
   alias_method :catch, :rescue
 
   def sync
-    case defined?(@state) && @state
-    when :fulfilled
-      return @value
-    when :rejected
-      raise @reason
-    end
-
-    wait
+    wait if pending?
 
     case defined?(@state) && @state
     when :fulfilled
