@@ -36,7 +36,7 @@ class Promise
   end
 
   def pending?
-    defined?(@state) ? false : true
+    @state ? false : true
   end
 
   def fulfilled?
