@@ -36,21 +36,21 @@ class Promise
   end
 
   def pending?
-    @state ? false : true
+    defined?(@state) ? false : true
   end
 
   def fulfilled?
-    @state.equal?(:fulfilled)
+    defined?(@state) && @state.equal?(:fulfilled)
   end
 
   def rejected?
-    @state.equal?(:rejected)
+    defined?(@state) && @state.equal?(:rejected)
   end
 
   def then(on_fulfill = nil, on_reject = nil)
     next_promise = self.class.new
 
-    case @state
+    case defined?(@state) && @state
     when :fulfilled
       if on_fulfill
         defer { next_promise.settle_from_handler(@value, &on_fulfill) }
@@ -80,7 +80,7 @@ class Promise
   alias_method :catch, :rescue
 
   def sync
-    case @state
+    case defined?(@state) && @state
     when :fulfilled
       return @value
     when :rejected
@@ -89,7 +89,7 @@ class Promise
 
     wait
 
-    case @state
+    case defined?(@state) && @state
     when :fulfilled
       return @value
     when :rejected
@@ -102,7 +102,7 @@ class Promise
   def fulfill(value = nil)
     return self unless pending?
 
-    @source &&= nil
+    @source = nil if defined?(@source)
 
     if value.is_a?(Promise)
       case value.state
@@ -127,7 +127,7 @@ class Promise
   def reject(reason = nil)
     return self unless pending?
 
-    @source &&= nil
+    @source = nil if defined?(@source)
 
     @reason = reason_coercion(reason || Error)
     @state = :rejected
@@ -148,7 +148,7 @@ class Promise
   end
 
   def state
-    @state || :pending
+    defined?(@state) ? @state : :pending
   end
 
   protected
@@ -188,7 +188,7 @@ class Promise
   private
 
   def fulfill_promises
-    return unless @callbacks
+    return unless defined?(@callbacks) && @callbacks
 
     @callbacks.each_slice(3) do |callback, on_fulfill_arg, _|
       defer { callback.promise_fulfilled(@value, on_fulfill_arg) }
@@ -198,7 +198,7 @@ class Promise
   end
 
   def reject_promises
-    return unless @callbacks
+    return unless defined?(@callbacks) && @callbacks
 
     @callbacks.each_slice(3) do |callback, _, on_reject_arg|
       defer { callback.promise_rejected(@reason, on_reject_arg) }
