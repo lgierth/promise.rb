@@ -582,7 +582,7 @@ describe Promise do
       b.fulfill(sentinel)
 
       # The order here is not actually specified by the Promises/A+ spec
-      expect(called).to eq([2, 4, 1, 3, 5, 6])
+      expect(called).to eq([2, 4, 1, 3, 6, 5])
     end
   end
 

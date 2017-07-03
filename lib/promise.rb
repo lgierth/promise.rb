@@ -66,7 +66,7 @@ class Promise
         defer { next_promise.reject(@reason) }
       end
     else
-      next_promise.source = target
+      next_promise.source = self
       on_fulfill ||= Proc.new if block_given?
       add_callback(next_promise, on_fulfill, on_reject)
     end
@@ -102,6 +102,8 @@ class Promise
   def fulfill(value = nil)
     return self unless pending?
 
+    @source &&= nil
+
     if value.is_a?(Promise)
       case value.state
       when :fulfilled
@@ -109,19 +111,10 @@ class Promise
       when :rejected
         reject(value.reason)
       else
-        @source = value.target
-        @source.add_callback(self, nil, nil)
-
-        if @callbacks && @source.instance_of?(self.class)
-          @target = @source
-          @target.migrate_callbacks(@callbacks)
-          @callbacks = nil
-        end
+        @source = value
+        value.add_callback(self, nil, nil)
       end
     else
-      @source &&= nil
-      @target &&= nil
-
       @value = value
       @state = :fulfilled
 
@@ -135,7 +128,6 @@ class Promise
     return self unless pending?
 
     @source &&= nil
-    @target &&= nil
 
     @reason = reason_coercion(reason || Error)
     @state = :rejected
@@ -172,21 +164,9 @@ class Promise
     reject(ex)
   end
 
-  def target
-    @target ? @target.target : self
-  end
-
   def add_callback(callback, on_fulfill_arg, on_reject_arg)
-    if @target
-      @target.add_callback(callback, on_fulfill_arg, on_reject_arg)
-    else
-      @callbacks ||= []
-      @callbacks.push(callback, on_fulfill_arg, on_reject_arg)
-    end
-  end
-
-  def migrate_callbacks(callbacks)
-    @callbacks.concat(callbacks)
+    @callbacks ||= []
+    @callbacks.push(callback, on_fulfill_arg, on_reject_arg)
   end
 
   def promise_fulfilled(value, on_fulfill)
