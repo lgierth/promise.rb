@@ -562,8 +562,8 @@ describe Promise do
     end
   end
 
-  describe "nested promise chains" do
-    it "should correctly fulfill all nested promises" do
+  describe 'nested promise chains' do
+    it 'should correctly fulfill all nested promises' do
       parent = Promise.new
       b = Promise.new
 
