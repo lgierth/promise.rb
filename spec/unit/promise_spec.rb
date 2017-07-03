@@ -19,6 +19,34 @@ describe Promise do
   let(:dummy) { Object.new }
   let(:sentinel) { Object.new }
 
+  describe '2.2.6: `then` may be called multiple times on the same promise.' do
+    describe '2.2.6.1: If/when `promise` is fulfilled, all respective `onFulfilled` callbacks must execute in the order of their originating calls to `then`.' do
+      it 'on an immediately fulfilled promise' do
+        promise = Promise.new.fulfill(sentinel)
+
+        called = []
+        promise.then { called << 1 }
+        promise.then { called << 2 }
+        promise.then { called << 3 }
+
+        expect(called).to eq([1, 2, 3])
+      end
+
+      it 'on an eventually-fulfilled promise' do
+        promise = Promise.new
+
+        called = []
+        promise.then { called << 1 }
+        promise.then { called << 2 }
+        promise.then { called << 3 }
+
+        promise.fulfill(sentinel)
+
+        expect(called).to eq([1, 2, 3])
+      end
+    end
+  end
+
   describe '2.2.7: `then` must return a promise' do
     it 'returns a promise' do
       promise1 = Promise.new
@@ -489,9 +517,21 @@ describe Promise do
   end
 
   describe 'a Promise A that is following a Promise B' do
-    it "is instantly fulfilled with B's fulfillment value when B gets fulfilled" do
+    it "is instantly fulfilled with B's fulfillment value if B is fulfilled" do
       b = Promise.resolve(sentinel)
       a = Promise.resolve(b)
+
+      expect(a.value).to equal(sentinel)
+      expect(a.value).to equal(b.value)
+    end
+
+    it "is eventually-fulfilled with B's fulfillment value if B is fulfilled" do
+      b = Promise.new
+      a = Promise.resolve(b)
+
+      expect(a).to be_pending
+
+      b.fulfill(sentinel)
 
       expect(a.value).to equal(sentinel)
       expect(a.value).to equal(b.value)
@@ -506,6 +546,43 @@ describe Promise do
       expect(a.value).to equal(sentinel)
       expect(a.value).to equal(b.value)
       expect(a.value).to equal(parent.value)
+    end
+
+    it "is eventually-fulfilled with B's parent fulfillment value when B was fulfilled with a parent" do
+      parent = Promise.new
+
+      b = Promise.resolve(parent)
+      a = Promise.resolve(b)
+
+      parent.fulfill(sentinel)
+
+      expect(a.value).to equal(sentinel)
+      expect(a.value).to equal(b.value)
+      expect(a.value).to equal(parent.value)
+    end
+  end
+
+  describe "nested promise chains" do
+    it "should correctly fulfill all nested promises" do
+      parent = Promise.new
+      b = Promise.new
+
+      called = []
+
+      parent.then { called << 1 }
+      b.then { called << 2 }
+      parent.then { called << 3 }
+      b.then { called << 4 }
+
+      parent.fulfill(b)
+
+      b.then { called << 5 }
+      parent.then { called << 6 }
+
+      b.fulfill(sentinel)
+
+      # The order here is not actually specified by the Promises/A+ spec
+      expect(called).to eq([2, 4, 1, 3, 5, 6])
     end
   end
 
