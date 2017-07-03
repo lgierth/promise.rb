@@ -183,7 +183,7 @@ class Promise
   def fulfill_promises
     return unless defined?(@callbacks) && @callbacks
 
-    @callbacks.each_slice(3) do |callback, on_fulfill_arg, _|
+    @callbacks.each_slice(3) do |callback, on_fulfill_arg, _on_reject_arg|
       defer { callback.promise_fulfilled(@value, on_fulfill_arg) }
     end
 
@@ -193,7 +193,7 @@ class Promise
   def reject_promises
     return unless defined?(@callbacks) && @callbacks
 
-    @callbacks.each_slice(3) do |callback, _, on_reject_arg|
+    @callbacks.each_slice(3) do |callback, _on_fulfill_arg, on_reject_arg|
       defer { callback.promise_rejected(@reason, on_reject_arg) }
     end
 
