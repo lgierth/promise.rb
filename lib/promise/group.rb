@@ -1,59 +1,79 @@
 class Promise
   class Group
-    attr_accessor :source
     attr_reader :promise
 
-    def initialize(result_promise, inputs)
-      @promise = result_promise
-      @inputs = inputs
-      @remaining = count_promises
-      if @remaining.zero?
-        promise.fulfill(inputs)
-      else
-        promise.source = self
-        chain_inputs
-      end
+    def initialize(promise, input)
+      promise.source = self
+
+      @promise = promise
+      @total_resolved = 0
+      @input = input
+
+      iterate
     end
 
     def wait
-      each_promise do |input_promise|
-        input_promise.wait if input_promise.pending?
+      return unless @input
+
+      @input.each do |obj|
+        obj.wait if obj.is_a?(Promise) && obj.pending?
       end
+    end
+
+    def promise_fulfilled(value, index)
+      @total_resolved += 1
+      @values[index] = value
+
+      fulfill if resolved?
+    end
+
+    def promise_rejected(reason, _)
+      reject(reason)
     end
 
     private
 
-    def chain_inputs
-      on_fulfill = method(:on_fulfill)
-      on_reject = promise.public_method(:reject)
-      each_promise do |input_promise|
-        input_promise.then(on_fulfill, on_reject)
+    def resolved?
+      @values.length == @total_resolved
+    end
+
+    def iterate
+      index = 0
+      @values = @input.map do |maybe_promise|
+        result =
+          if maybe_promise.is_a?(Promise)
+            case maybe_promise.state
+            when :fulfilled
+              @total_resolved += 1
+              maybe_promise.value
+            when :rejected
+              return reject(maybe_promise.reason)
+            else
+              maybe_promise.send(:add_callback, self, index, nil)
+              nil
+            end
+          else
+            @total_resolved += 1
+            maybe_promise
+          end
+
+        index += 1
+        result
       end
+
+      fulfill if resolved?
     end
 
-    def on_fulfill(_result)
-      @remaining -= 1
-      if @remaining.zero?
-        result = @inputs.map { |obj| promise?(obj) ? obj.value : obj }
-        promise.fulfill(result)
-      end
+    def fulfill
+      @promise.fulfill(@values)
+      @values = @input = nil
     end
 
-    def promise?(obj)
-      obj.is_a?(Promise)
-    end
-
-    def count_promises
-      count = 0
-      each_promise { count += 1 }
-      count
-    end
-
-    def each_promise
-      @inputs.each do |obj|
-        yield obj if promise?(obj)
-      end
+    def reject(reason)
+      @promise.reject(reason)
+      @values = @input = nil
     end
   end
+
   private_constant :Group
 end

@@ -2,7 +2,6 @@
 
 require 'promise/version'
 
-require 'promise/callback'
 require 'promise/progress'
 require 'promise/group'
 
@@ -13,11 +12,11 @@ class Promise
   include Promise::Progress
 
   attr_accessor :source
-  attr_reader :state, :value, :reason
+  attr_reader :value, :reason
 
   def self.resolve(obj = nil)
     return obj if obj.is_a?(self)
-    new.tap { |promise| promise.fulfill(obj) }
+    new.fulfill(obj)
   end
 
   def self.all(enumerable)
@@ -36,28 +35,42 @@ class Promise
     obj.is_a?(Promise) ? obj.sync : obj
   end
 
-  def initialize
-    @state = :pending
-    @callbacks = []
-  end
-
   def pending?
-    state.equal?(:pending)
+    defined?(@state) ? false : true
   end
 
   def fulfilled?
-    state.equal?(:fulfilled)
+    defined?(@state) && @state.equal?(:fulfilled)
   end
 
   def rejected?
-    state.equal?(:rejected)
+    defined?(@state) && @state.equal?(:rejected)
   end
 
-  def then(on_fulfill = nil, on_reject = nil, &block)
-    on_fulfill ||= block
+  def then(on_fulfill = nil, on_reject = nil)
     next_promise = self.class.new
 
-    add_callback(Callback.new(on_fulfill, on_reject, next_promise))
+    case defined?(@state) && @state
+    when :fulfilled
+      if on_fulfill
+        defer { next_promise.settle_from_handler(@value, &on_fulfill) }
+      elsif block_given?
+        defer { next_promise.settle_from_handler(@value) { |v| yield v } }
+      else
+        defer { next_promise.fulfill(@value) }
+      end
+    when :rejected
+      if on_reject
+        defer { next_promise.settle_from_handler(@reason, &on_reject) }
+      else
+        defer { next_promise.reject(@reason) }
+      end
+    else
+      next_promise.source = self
+      on_fulfill ||= Proc.new if block_given?
+      add_callback(next_promise, on_fulfill, on_reject)
+    end
+
     next_promise
   end
 
@@ -67,33 +80,53 @@ class Promise
   alias_method :catch, :rescue
 
   def sync
-    if pending?
-      wait
-      raise BrokenError if pending?
+    wait if pending?
+
+    case defined?(@state) && @state
+    when :fulfilled
+      return @value
+    when :rejected
+      raise @reason
     end
-    raise reason if rejected?
-    value
+
+    raise BrokenError
   end
 
   def fulfill(value = nil)
-    if Promise === value
-      value.add_callback(self)
-    else
-      dispatch do
-        @state = :fulfilled
-        @source = nil
-        @value = value
+    return self unless pending?
+
+    @source = nil if defined?(@source)
+
+    if value.is_a?(Promise)
+      case value.state
+      when :fulfilled
+        fulfill(value.value)
+      when :rejected
+        reject(value.reason)
+      else
+        @source = value
+        value.add_callback(self, nil, nil)
       end
+    else
+      @value = value
+      @state = :fulfilled
+
+      fulfill_promises
     end
+
     self
   end
 
   def reject(reason = nil)
-    dispatch do
-      @state = :rejected
-      @source = nil
-      @reason = reason_coercion(reason || Error)
-    end
+    return self unless pending?
+
+    @source = nil if defined?(@source)
+
+    @reason = reason_coercion(reason || Error)
+    @state = :rejected
+
+    reject_promises
+
     self
   end
 
@@ -107,6 +140,10 @@ class Promise
     end
   end
 
+  def state
+    defined?(@state) ? @state : :pending
+  end
+
   protected
 
   # Override to defer calling the callback for Promises/A+ spec compliance
@@ -114,16 +151,54 @@ class Promise
     yield
   end
 
-  def add_callback(callback)
-    if pending?
-      @callbacks << callback
-      callback.source = self
+  def settle_from_handler(value)
+    fulfill(yield(value))
+  rescue => ex
+    reject(ex)
+  end
+
+  def add_callback(callback, on_fulfill_arg, on_reject_arg)
+    @callbacks ||= []
+    @callbacks.push(callback, on_fulfill_arg, on_reject_arg)
+  end
+
+  def promise_fulfilled(value, on_fulfill)
+    if on_fulfill
+      settle_from_handler(value, &on_fulfill)
     else
-      dispatch!(callback)
+      fulfill(value)
+    end
+  end
+
+  def promise_rejected(reason, on_reject)
+    if on_reject
+      settle_from_handler(reason, &on_reject)
+    else
+      reject(reason)
     end
   end
 
   private
+
+  def fulfill_promises
+    return unless defined?(@callbacks) && @callbacks
+
+    @callbacks.each_slice(3) do |callback, on_fulfill_arg, _on_reject_arg|
+      defer { callback.promise_fulfilled(@value, on_fulfill_arg) }
+    end
+
+    @callbacks = nil
+  end
+
+  def reject_promises
+    return unless defined?(@callbacks) && @callbacks
+
+    @callbacks.each_slice(3) do |callback, _on_fulfill_arg, on_reject_arg|
+      defer { callback.promise_rejected(@reason, on_reject_arg) }
+    end
+
+    @callbacks = nil
+  end
 
   def reason_coercion(reason)
     case reason
@@ -133,23 +208,5 @@ class Promise
       reason = reason_coercion(reason.new) if reason <= Exception
     end
     reason
-  end
-
-  def dispatch
-    if pending?
-      yield
-      @callbacks.each { |callback| dispatch!(callback) }
-      nil
-    end
-  end
-
-  def dispatch!(callback)
-    defer do
-      if fulfilled?
-        callback.fulfill(value)
-      else
-        callback.reject(reason)
-      end
-    end
   end
 end

@@ -16,6 +16,184 @@ describe Promise do
     StandardError.new('other_reason').tap { |err| err.set_backtrace(caller) }
   end
 
+  let(:dummy) { Object.new }
+  let(:sentinel) { Object.new }
+
+  describe '2.2.6: `then` may be called multiple times on the same promise.' do
+    describe '2.2.6.1: If/when `promise` is fulfilled, all respective `onFulfilled` callbacks must execute in the order of their originating calls to `then`.' do
+      it 'on an immediately fulfilled promise' do
+        promise = Promise.new.fulfill(sentinel)
+
+        called = []
+        promise.then { called << 1 }
+        promise.then { called << 2 }
+        promise.then { called << 3 }
+
+        expect(called).to eq([1, 2, 3])
+      end
+
+      it 'on an eventually-fulfilled promise' do
+        promise = Promise.new
+
+        called = []
+        promise.then { called << 1 }
+        promise.then { called << 2 }
+        promise.then { called << 3 }
+
+        promise.fulfill(sentinel)
+
+        expect(called).to eq([1, 2, 3])
+      end
+    end
+  end
+
+  describe '2.2.7: `then` must return a promise' do
+    it 'returns a promise' do
+      promise1 = Promise.new
+      promise2 = promise1.then
+
+      expect(promise2).to be_an_instance_of(Promise)
+    end
+
+    describe '2.2.7.3: If `onFulfilled` is not a function and `promise1` is fulfilled' do
+      it '`promise2` must be fulfilled with the same value' do
+        promise1 = Promise.new.fulfill(sentinel)
+        promise2 = promise1.then
+
+        expect(promise2.value).to equal(sentinel)
+      end
+    end
+
+    describe '2.2.7.3: If `onRejected` is not a function and `promise1` is rejected' do
+      it '`promise2` must be rejected with the same value' do
+        promise1 = Promise.new.reject(sentinel)
+        promise2 = promise1.then
+
+        expect(promise2.reason).to equal(sentinel)
+      end
+    end
+  end
+
+  describe '2.3.2: If `x` is a promise, adopt its state' do
+    describe '2.3.2.1: If `x` is pending, `promise` must remain pending until `x` is fulfilled or rejected.' do
+      it 'via return from from a fulfilled promise' do
+        x = Promise.new
+        promise = Promise.new.fulfill(dummy).then { x }
+
+        expect(promise).not_to be_fulfilled
+        expect(promise).not_to be_rejected
+
+        expect(promise).to be_pending
+      end
+
+      it 'via return from from a rejected promise' do
+        x = Promise.new
+        promise = Promise.new.reject(dummy).then(->(_) {}, ->(_) { x })
+
+        expect(promise).not_to be_fulfilled
+        expect(promise).not_to be_rejected
+
+        expect(promise).to be_pending
+      end
+    end
+
+    describe '2.3.2.2: If/when `x` is fulfilled, fulfill `promise` with the same value.' do
+      describe '`x` is already-fulfilled' do
+        it 'via return from from a fulfilled promise' do
+          x = Promise.new.fulfill(sentinel)
+          promise = Promise.new.fulfill(dummy).then { x }
+
+          value = nil
+          promise.then { |v| value = v }
+
+          expect(value).to equal(sentinel)
+        end
+
+        it 'via return from from a rejected promise' do
+          x = Promise.new.fulfill(sentinel)
+          promise = Promise.new.reject(dummy).then(->(_) {}, ->(_) { x })
+
+          value = nil
+          promise.then { |v| value = v }
+
+          expect(value).to equal(sentinel)
+        end
+      end
+
+      describe '`x` is eventually-fulfilled' do
+        it 'via return from from a fulfilled promise' do
+          x = Promise.new
+          promise = Promise.new.fulfill(dummy).then { x }
+
+          value = nil
+          promise.then { |v| value = v }
+          x.fulfill(sentinel)
+
+          expect(value).to equal(sentinel)
+        end
+
+        it 'via return from from a rejected promise' do
+          x = Promise.new
+          promise = Promise.new.reject(dummy).then(->(_) {}, ->(_) { x })
+
+          value = nil
+          promise.then { |v| value = v }
+          x.fulfill(sentinel)
+
+          expect(value).to equal(sentinel)
+        end
+      end
+    end
+
+    describe '2.3.2.3: If/when `x` is rejected, reject `promise` with the same reason.' do
+      describe '`x` is already-rejected' do
+        it 'via return from from a fulfilled promise' do
+          x = Promise.new.reject(sentinel)
+          promise = Promise.new.fulfill(dummy).then { x }
+
+          error = nil
+          promise.then(->(_) {}, ->(e) { error = e })
+
+          expect(error).to equal(sentinel)
+        end
+
+        it 'via return from from a rejected promise' do
+          x = Promise.new.reject(sentinel)
+          promise = Promise.new.reject(dummy).then(->(_) {}, ->(_) { x })
+
+          error = nil
+          promise.then(->(_) {}, ->(e) { error = e })
+
+          expect(error).to equal(sentinel)
+        end
+      end
+
+      describe '`x` is eventually-rejected' do
+        it 'via return from from a fulfilled promise' do
+          x = Promise.new
+          promise = Promise.new.fulfill(dummy).then { x }
+
+          error = nil
+          promise.then(->(_) {}, ->(e) { error = e })
+          x.reject(sentinel)
+
+          expect(error).to equal(sentinel)
+        end
+
+        it 'via return from from a rejected promise' do
+          x = Promise.new
+          promise = Promise.new.reject(dummy).then(->(_) {}, ->(_) { x })
+
+          error = nil
+          promise.then(->(_) {}, ->(e) { error = e })
+          x.reject(sentinel)
+
+          expect(error).to equal(sentinel)
+        end
+      end
+    end
+  end
+
   describe '3.1.1 pending' do
     it 'transitions to fulfilled' do
       subject.fulfill(value)
@@ -338,6 +516,76 @@ describe Promise do
     end
   end
 
+  describe 'a Promise A that is following a Promise B' do
+    it "is instantly fulfilled with B's fulfillment value if B is fulfilled" do
+      b = Promise.resolve(sentinel)
+      a = Promise.resolve(b)
+
+      expect(a.value).to equal(sentinel)
+      expect(a.value).to equal(b.value)
+    end
+
+    it "is eventually-fulfilled with B's fulfillment value if B is fulfilled" do
+      b = Promise.new
+      a = Promise.resolve(b)
+
+      expect(a).to be_pending
+
+      b.fulfill(sentinel)
+
+      expect(a.value).to equal(sentinel)
+      expect(a.value).to equal(b.value)
+    end
+
+    it "is instantly fulfilled with B's parent fulfillment value when B was fulfilled with a parent" do
+      parent = Promise.resolve(sentinel)
+
+      b = Promise.resolve(parent)
+      a = Promise.resolve(b)
+
+      expect(a.value).to equal(sentinel)
+      expect(a.value).to equal(b.value)
+      expect(a.value).to equal(parent.value)
+    end
+
+    it "is eventually-fulfilled with B's parent fulfillment value when B was fulfilled with a parent" do
+      parent = Promise.new
+
+      b = Promise.resolve(parent)
+      a = Promise.resolve(b)
+
+      parent.fulfill(sentinel)
+
+      expect(a.value).to equal(sentinel)
+      expect(a.value).to equal(b.value)
+      expect(a.value).to equal(parent.value)
+    end
+  end
+
+  describe 'nested promise chains' do
+    it 'should correctly fulfill all nested promises' do
+      parent = Promise.new
+      b = Promise.new
+
+      called = []
+
+      parent.then { called << 1 }
+      b.then { called << 2 }
+      parent.then { called << 3 }
+      b.then { called << 4 }
+
+      parent.fulfill(b)
+
+      b.then { called << 5 }
+      parent.then { called << 6 }
+
+      b.fulfill(sentinel)
+
+      # The order here is not actually specified by the Promises/A+ spec
+      expect(called).to eq([2, 4, 1, 3, 6, 5])
+    end
+  end
+
   describe 'extras' do
     describe '#rescue' do
       it 'provides an on_reject callback' do
@@ -589,10 +837,23 @@ describe Promise do
         expect(result.value).to eq(['a', :b])
       end
 
-      it 'rejects the result when any args is rejected' do
+      it 'rejects the result when any arg is rejected' do
+        reason = RuntimeError.new('p1 failed')
+
+        p1 = Promise.new
+        p2 = Promise.new.reject(reason)
+
+        result = Promise.all([p1, p2])
+
+        expect(result).to be_rejected
+        expect(result.reason).to eq(reason)
+      end
+
+      it 'rejects the result when any arg is eventually-rejected' do
+        reason = RuntimeError.new('p1 failed')
+
         p1 = Promise.new
         p2 = Promise.new
-        reason = RuntimeError.new('p1 failed')
 
         result = Promise.all([p1, p2])
 
