@@ -10,8 +10,12 @@ class Promise
       @inputs = inputs
       @remaining = count_promises
 
-      promise.source = self
-      chain_inputs
+      if @remaining.zero?
+        promise.fulfill(inputs)
+      else
+        promise.source = self
+        chain_inputs
+      end
     end
 
     def wait
@@ -20,7 +24,7 @@ class Promise
       end
     end
 
-    def promise_fulfilled(_value, _arg)
+    def promise_fulfilled(_value = nil, _arg = nil)
       @remaining -= 1
       if @remaining.zero?
         result = @inputs.map { |obj| promise?(obj) ? obj.value : obj }
@@ -28,7 +32,7 @@ class Promise
       end
     end
 
-    def promise_rejected(reason, _arg)
+    def promise_rejected(reason, _arg = nil)
       promise.reject(reason)
     end
 
@@ -36,14 +40,15 @@ class Promise
 
     def chain_inputs
       each_promise do |input_promise|
-        if input_promise.pending?
+        case input_promise.state
+        when :fulfilled
+          promise_fulfilled
+        when :rejected
+          promise_rejected(input_promise.reason)
+        else
           input_promise.subscribe(self, nil, nil)
-        elsif input_promise.rejected?
-          promise_rejected(input_promise.reason, nil)
         end
       end
-
-      promise.fulfill(@inputs.dup) if @remaining.zero?
     end
 
     def promise?(obj)
@@ -52,7 +57,7 @@ class Promise
 
     def count_promises
       count = 0
-      each_promise { |input_promise| count += 1 if input_promise.pending? }
+      each_promise { count += 1 }
       count
     end
 

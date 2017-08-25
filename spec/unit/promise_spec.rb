@@ -943,24 +943,20 @@ describe Promise do
     end
 
     describe '.all' do
-      describe 'with an array containing no promises' do
-        it 'returns a promise fulfilled with the same data' do
-          obj = Object.new
-          promise = Promise.all([1, 'b', obj])
+      it "fulfills the result with inputs if they don't contain promises" do
+        input = [1, 'b']
+        promise = Promise.all(input)
 
-          expect(promise).to be_fulfilled
-          expect(promise.value).to eq([1, 'b', obj])
-        end
+        expect(promise).to be_fulfilled
+        expect(promise.value).to eq([1, 'b'])
+      end
 
-        it 'does not return the input object directly' do
-          obj = Object.new
-          input = [1, 'b', obj]
-          promise = Promise.all(input)
+      it 'fulfills the result when all args are already fulfilled' do
+        input = [1, Promise.resolve(2.0)]
+        promise = Promise.all(input)
 
-          expect(promise).to be_fulfilled
-          expect(promise.value).to eq([1, 'b', obj])
-          expect(promise.value).not_to equal(input)
-        end
+        expect(promise).to be_fulfilled
+        expect(promise.value).to eq([1, 2.0])
       end
 
       it 'fulfills the result when all args are fulfilled' do
