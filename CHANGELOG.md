@@ -1,6 +1,6 @@
 # promise.rb changelog
 
-## 0.7.4 (unreleased)
+## 0.7.4 (August 25, 2017)
 
 ### Features
 
