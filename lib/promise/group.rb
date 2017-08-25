@@ -39,7 +39,7 @@ class Promise
         if input_promise.pending?
           input_promise.subscribe(self, nil, nil)
         elsif input_promise.rejected?
-          return promise_rejected(input_promise.reason, nil)
+          promise_rejected(input_promise.reason, nil)
         end
       end
 
