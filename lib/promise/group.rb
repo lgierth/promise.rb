@@ -1,5 +1,7 @@
 class Promise
   class Group
+    include Promise::Observer
+
     attr_accessor :source
     attr_reader :promise
 
@@ -7,6 +9,7 @@ class Promise
       @promise = result_promise
       @inputs = inputs
       @remaining = count_promises
+
       if @remaining.zero?
         promise.fulfill(inputs)
       else
@@ -21,21 +24,30 @@ class Promise
       end
     end
 
-    private
-
-    def chain_inputs
-      on_fulfill = method(:on_fulfill)
-      on_reject = promise.public_method(:reject)
-      each_promise do |input_promise|
-        input_promise.then(on_fulfill, on_reject)
-      end
-    end
-
-    def on_fulfill(_result)
+    def promise_fulfilled(_value = nil, _arg = nil)
       @remaining -= 1
       if @remaining.zero?
         result = @inputs.map { |obj| promise?(obj) ? obj.value : obj }
         promise.fulfill(result)
+      end
+    end
+
+    def promise_rejected(reason, _arg = nil)
+      promise.reject(reason)
+    end
+
+    private
+
+    def chain_inputs
+      each_promise do |input_promise|
+        case input_promise.state
+        when :fulfilled
+          promise_fulfilled
+        when :rejected
+          promise_rejected(input_promise.reason)
+        else
+          input_promise.subscribe(self, nil, nil)
+        end
       end
     end
 

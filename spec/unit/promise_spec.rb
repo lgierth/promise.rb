@@ -161,7 +161,7 @@ describe Promise do
   end
 
   describe '3.2.4' do
-    it 'returns before on_fulfill or on_reject is called' do
+    it 'returns before on_fulfill is called when fulfilling a promise' do
       called = false
       p1 = DelayedPromise.new
       p2 = p1.then { called = true }
@@ -172,6 +172,57 @@ describe Promise do
       DelayedPromise.call_deferred
       expect(called).to eq(true)
       expect(p2).to be_fulfilled
+    end
+
+    it 'returns before on_reject is called when rejecting a promise' do
+      called = false
+      p1 = DelayedPromise.new
+      p2 = p1.then(nil, lambda do |err|
+        called = true
+        raise err
+      end)
+
+      p1.reject(42)
+
+      expect(called).to eq(false)
+      DelayedPromise.call_deferred
+      expect(called).to eq(true)
+      expect(p2).to be_rejected
+    end
+
+    it 'returns before on_fulfill is called for a fulfilled promise' do
+      called = false
+      p1 = DelayedPromise.new
+      p1.fulfill(42)
+
+      p2 = p1.then { called = true }
+
+      expect(p2).to be_pending
+      expect(called).to eq(false)
+
+      DelayedPromise.call_deferred
+
+      expect(called).to eq(true)
+      expect(p2).to be_fulfilled
+    end
+
+    it 'returns before on_reject is called for a rejected promise' do
+      called = false
+      p1 = DelayedPromise.new
+      p1.reject(42)
+
+      p2 = p1.then(nil, lambda { |err|
+        called = true
+        raise err
+      })
+
+      expect(p2).to be_pending
+      expect(called).to eq(false)
+
+      DelayedPromise.call_deferred
+
+      expect(called).to eq(true)
+      expect(p2).to be_rejected
     end
   end
 
@@ -335,6 +386,343 @@ describe Promise do
         expect(promise2).to be_rejected
         expect(promise2.reason).to eq(reason)
       end
+    end
+  end
+
+  describe '#fulfill' do
+    describe 'when called on a pending Promise' do
+      it 'fulfills the Promise with the given value' do
+        promise = Promise.new
+        promise.fulfill(:foo)
+
+        expect(promise).to be_fulfilled
+        expect(promise.value).to equal(:foo)
+      end
+
+      it 'can be called without arguments' do
+        promise = Promise.new
+        promise.fulfill
+
+        expect(promise).to be_fulfilled
+        expect(promise.value).to be_nil
+      end
+
+      it 'returns self on a pending promise' do
+        promise = Promise.new
+        expect(promise.fulfill(:foo)).to equal(promise)
+      end
+
+      it 'returns self on a rejected promise' do
+        promise = Promise.new
+        promise.reject(:baz)
+        expect(promise.fulfill(:foo)).to equal(promise)
+      end
+
+      it 'unsets any `source` associations' do
+        other = Promise.new
+
+        promise = Promise.new
+        promise.fulfill(other)
+
+        other.fulfill(:foo)
+
+        expect(promise.source).to be_nil
+      end
+
+      it 'unsets any references to previously set observers' do
+        promise = Promise.new
+
+        observer = Class.new { include Promise::Observer }.new
+        promise.subscribe(observer, nil, nil)
+
+        promise.fulfill(:foo)
+
+        expect(promise.instance_variable_get(:@observers)).to be_nil
+      end
+    end
+
+    describe 'when called on a fulfilled Promise' do
+      it 'returns self' do
+        promise = Promise.new
+        promise.fulfill(:foo)
+
+        expect(promise.fulfill(:bar)).to equal(promise)
+      end
+
+      it 'can not change the fulfillment value' do
+        promise = Promise.new
+        promise.fulfill(:foo)
+        promise.fulfill(:bar)
+
+        expect(promise).to be_fulfilled
+        expect(promise.value).to equal(:foo)
+      end
+    end
+
+    describe 'when called on a rejected Promise' do
+      it 'returns self' do
+        promise = Promise.new
+        promise.reject(:foo)
+
+        expect(promise.fulfill(:bar)).to equal(promise)
+      end
+
+      it 'can not change the rejection reason' do
+        promise = Promise.new
+        promise.reject(:foo)
+        promise.fulfill(:bar)
+
+        expect(promise).to be_rejected
+        expect(promise.reason).to equal(:foo)
+      end
+
+      it 'does not set a fulfilment value' do
+        promise = Promise.new
+        promise.reject(:foo)
+        promise.fulfill(:bar)
+
+        expect(promise.value).to be_nil
+      end
+    end
+
+    describe 'when the fulfillment value is a pending Promise' do
+      it 'leaves the promise in a pending state' do
+        other = Promise.new
+
+        promise = Promise.new
+        promise.fulfill(other)
+
+        expect(promise).to be_pending
+      end
+
+      it 'sets the given Promise as the source' do
+        other = Promise.new
+
+        promise = Promise.new
+        promise.fulfill(other)
+
+        expect(promise.source).to equal(other)
+      end
+
+      it 'propagates promise fulfillment' do
+        other = Promise.new
+
+        promise = Promise.new
+        promise.fulfill(other)
+
+        other.fulfill(:foo)
+
+        expect(promise).to be_fulfilled
+        expect(promise.value).to equal(:foo)
+      end
+
+      it 'propagates promise rejection' do
+        other = Promise.new
+
+        promise = Promise.new
+        promise.fulfill(other)
+
+        other.reject(:foo)
+
+        expect(promise).to be_rejected
+        expect(promise.reason).to equal(:foo)
+      end
+    end
+
+    describe 'when the fulfillment value is a fulfilled Promise' do
+      it 'fulfills the Promise with the same value' do
+        other = Promise.new
+        other.fulfill(:foo)
+
+        promise = Promise.new
+        promise.fulfill(other)
+
+        expect(promise).to be_fulfilled
+        expect(promise.value).to equal(:foo)
+      end
+
+      it 'works with Promise subclasses' do
+        other = Class.new(Promise).new
+        other.fulfill(:foo)
+
+        promise = Promise.new
+        promise.fulfill(other)
+
+        expect(promise).to be_fulfilled
+        expect(promise.value).to equal(:foo)
+      end
+    end
+
+    describe 'when the fulfillment value is a rejected Promise' do
+      it 'fulfills the Promise with the same value' do
+        other = Promise.new
+        other.reject(:foo)
+
+        promise = Promise.new
+        promise.fulfill(other)
+
+        expect(promise).to be_rejected
+        expect(promise.reason).to equal(:foo)
+      end
+
+      it 'works with Promise subclasses' do
+        other = Class.new(Promise).new
+        other.reject(:foo)
+
+        promise = Promise.new
+        promise.fulfill(other)
+
+        expect(promise).to be_rejected
+        expect(promise.reason).to equal(:foo)
+      end
+    end
+  end
+
+  describe '#reject' do
+    describe 'when called on a pending Promise' do
+      it 'rejects the Promise with the given value' do
+        promise = Promise.new
+        promise.reject(:foo)
+
+        expect(promise).to be_rejected
+        expect(promise.reason).to equal(:foo)
+      end
+
+      it 'can be called without arguments' do
+        promise = Promise.new
+        promise.reject
+
+        expect(promise).to be_rejected
+        expect(promise.reason).to be_an_instance_of(Promise::Error)
+      end
+
+      it 'returns self' do
+        promise = Promise.new
+        expect(promise.reject(:foo)).to equal(promise)
+      end
+
+      it 'unsets any `source` associations' do
+        other = Promise.new
+
+        promise = Promise.new
+        promise.fulfill(other)
+
+        other.reject(:foo)
+
+        expect(promise.source).to be_nil
+      end
+
+      it 'unsets any references to previously set observers' do
+        promise = Promise.new
+
+        observer = Class.new { include Promise::Observer }.new
+        promise.subscribe(observer, nil, nil)
+
+        promise.reject(:foo)
+
+        expect(promise.instance_variable_get(:@observers)).to be_nil
+      end
+    end
+
+    describe 'when called on a fulfilled Promise' do
+      it 'returns self' do
+        promise = Promise.new
+        promise.fulfill(:foo)
+
+        expect(promise.reject(:bar)).to equal(promise)
+      end
+
+      it 'can not change the fulfillment value' do
+        promise = Promise.new
+        promise.fulfill(:foo)
+        promise.reject(:bar)
+
+        expect(promise).to be_fulfilled
+        expect(promise.value).to equal(:foo)
+      end
+
+      it 'does not set a rejection reason' do
+        promise = Promise.new
+        promise.fulfill(:foo)
+        promise.reject(:bar)
+
+        expect(promise.reason).to be_nil
+      end
+    end
+
+    describe 'when called on a rejected Promise' do
+      it 'returns self' do
+        promise = Promise.new
+        promise.reject(:foo)
+
+        expect(promise.reject(:bar)).to equal(promise)
+      end
+
+      it 'can not change the rejection reason' do
+        promise = Promise.new
+        promise.reject(:foo)
+        promise.reject(:bar)
+
+        expect(promise).to be_rejected
+        expect(promise.reason).to equal(:foo)
+      end
+    end
+  end
+
+  describe '#subscribe' do
+    it 'sets up the observer to be notified of promise fulfillment' do
+      promise = Promise.new
+
+      observer = Class.new { include Promise::Observer }.new
+      promise.subscribe(observer, :fulfill_arg, :reject_arg)
+
+      expect(observer).to receive(:promise_fulfilled).with(:foo, :fulfill_arg)
+      promise.fulfill(:foo)
+    end
+
+    it 'sets up the observer to be notified of promise rejection' do
+      promise = Promise.new
+
+      observer = Class.new { include Promise::Observer }.new
+      promise.subscribe(observer, :fulfill_arg, :reject_arg)
+
+      expect(observer).to receive(:promise_rejected).with(:foo, :reject_arg)
+      promise.reject(:foo)
+    end
+
+    it 'fails when called on a fulfilled promise' do
+      promise = Promise.new
+      promise.fulfill(:foo)
+
+      observer = Class.new { include Promise::Observer }.new
+
+      expected_message = 'Non-pending promises can not be observed'
+      expect {
+        promise.subscribe(observer, :fulfill_arg, :reject_arg)
+      }.to raise_error(Promise::Error, expected_message)
+    end
+
+    it 'fails when called on a rejected promise' do
+      promise = Promise.new
+      promise.reject(:foo)
+
+      observer = Class.new { include Promise::Observer }.new
+
+      expected_message = 'Non-pending promises can not be observed'
+      expect {
+        promise.subscribe(observer, :fulfill_arg, :reject_arg)
+      }.to raise_error(Promise::Error, expected_message)
+    end
+
+    it 'fails when the given observer is not a `Promise::Observer`' do
+      promise = Promise.new
+
+      observer = Object.new
+
+      expected_message = 'Expected `observer` to be a `Promise::Observer`'
+      expect {
+        promise.subscribe(observer, :fulfill_arg, :reject_arg)
+      }.to raise_error(ArgumentError, expected_message)
     end
   end
 
@@ -555,11 +943,20 @@ describe Promise do
     end
 
     describe '.all' do
-      it 'returns a fulfilled promise for an array with no promises' do
-        obj = Object.new
-        promise = Promise.all([1, 'b', obj])
-        expect(promise.fulfilled?).to eq(true)
-        expect(promise.value).to eq([1, 'b', obj])
+      it "fulfills the result with inputs if they don't contain promises" do
+        input = [1, 'b']
+        promise = Promise.all(input)
+
+        expect(promise).to be_fulfilled
+        expect(promise.value).to eq([1, 'b'])
+      end
+
+      it 'fulfills the result when all args are already fulfilled' do
+        input = [1, Promise.resolve(2.0)]
+        promise = Promise.all(input)
+
+        expect(promise).to be_fulfilled
+        expect(promise.value).to eq([1, 2.0])
       end
 
       it 'fulfills the result when all args are fulfilled' do
@@ -587,6 +984,16 @@ describe Promise do
         p2.fulfill(:b)
         expect(result).to be_fulfilled
         expect(result.value).to eq(['a', :b])
+      end
+
+      it 'rejects the result when any input promise is already rejected' do
+        p1 = Promise.new
+        p2 = Promise.new.reject(:foo)
+
+        result = Promise.all([p1, p2])
+
+        expect(result).to be_rejected
+        expect(result.reason).to eq(:foo)
       end
 
       it 'rejects the result when any args is rejected' do

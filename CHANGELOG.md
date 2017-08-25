@@ -1,5 +1,11 @@
 # promise.rb changelog
 
+## 0.7.4 (unreleased)
+
+### Features
+
+* Add an observer API, used internally to improve performance (pull #34)
+
 ## 0.7.3 (April 28, 2017)
 
 ### Features

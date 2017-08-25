@@ -33,7 +33,7 @@ IrresponsibleModule:
 LongParameterList:
   enabled: true
   exclude: []
-  max_params: 2
+  max_params: 3
   overrides:
     initialize:
       max_params: 4
@@ -50,9 +50,7 @@ NilCheck:
   enabled: true
   exclude: []
 RepeatedConditional:
-  enabled: true
-  exclude: []
-  max_ifs: 4
+  enabled: false
 TooManyInstanceVariables:
   enabled: true
   exclude: []
@@ -60,11 +58,7 @@ TooManyInstanceVariables:
 TooManyMethods:
   enabled: false
 TooManyStatements:
-  enabled: true
-  exclude:
-  - initialize
-  - each
-  max_statements: 7
+  enabled: false
 UncommunicativeMethodName:
   enabled: true
   exclude: []
@@ -103,3 +97,5 @@ UtilityFunction:
   enabled: false
   exclude: []
   max_helper_calls: 0
+InstanceVariableAssumption:
+  enabled: false
