@@ -553,7 +553,7 @@ describe Promise do
       end
     end
 
-    describe 'when the fulfillment value is a fulfilled Promise' do
+    describe 'when the fulfillment value is a rejected Promise' do
       it 'fulfills the Promise with the same value' do
         other = Promise.new
         other.reject(:foo)
