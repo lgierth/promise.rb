@@ -2,7 +2,7 @@
 
 require 'promise/version'
 
-require 'promise/callback'
+require 'promise/observer'
 require 'promise/progress'
 require 'promise/group'
 
@@ -11,6 +11,7 @@ class Promise
   BrokenError = Class.new(Error)
 
   include Promise::Progress
+  include Promise::Observer
 
   attr_accessor :source
   attr_reader :state, :value, :reason
@@ -38,7 +39,6 @@ class Promise
 
   def initialize
     @state = :pending
-    @callbacks = []
   end
 
   def pending?
@@ -57,7 +57,16 @@ class Promise
     on_fulfill ||= block
     next_promise = self.class.new
 
-    add_callback(Callback.new(on_fulfill, on_reject, next_promise))
+    case state
+    when :fulfilled
+      defer { next_promise.promise_fulfilled(value, on_fulfill) }
+    when :rejected
+      defer { next_promise.promise_rejected(reason, on_reject) }
+    else
+      next_promise.source = self
+      subscribe(next_promise, on_fulfill, on_reject)
+    end
+
     next_promise
   end
 
@@ -76,24 +85,39 @@ class Promise
   end
 
   def fulfill(value = nil)
-    if Promise === value
-      value.add_callback(self)
-    else
-      dispatch do
-        @state = :fulfilled
-        @source = nil
-        @value = value
+    return self unless pending?
+
+    if value.is_a?(Promise)
+      case value.state
+      when :fulfilled
+        fulfill(value.value)
+      when :rejected
+        reject(value.reason)
+      else
+        @source = value
+        value.subscribe(self, nil, nil)
       end
+    else
+      @source = nil
+
+      @state = :fulfilled
+      @value = value
+
+      notify_fulfillment if defined?(@observers)
     end
+
     self
   end
 
   def reject(reason = nil)
-    dispatch do
-      @state = :rejected
-      @source = nil
-      @reason = reason_coercion(reason || Error)
-    end
+    return self unless pending?
+
+    @source = nil
+    @state = :rejected
+    @reason = reason_coercion(reason || Error)
+
+    notify_rejection if defined?(@observers)
+
     self
   end
 
@@ -107,6 +131,29 @@ class Promise
     end
   end
 
+  # Subscribe the given `observer` for status changes of a `Promise`.
+  #
+  # The observer will be notified about state changes of the promise
+  # by calls to its `#promise_fulfilled` or `#promise_rejected` methods.
+  #
+  # These methods will be called with two arguments,
+  # the first being the observed `Promise`, the second being the
+  # `on_fulfill_arg` or `on_reject_arg` given to `#subscribe`.
+  #
+  # @param [Promise::Observer] observer
+  # @param [Object] on_fulfill_arg
+  # @param [Object] on_reject_arg
+  def subscribe(observer, on_fulfill_arg, on_reject_arg)
+    raise Error, 'Non-pending promises can not be observed' unless pending?
+
+    unless observer.is_a?(Observer)
+      raise ArgumentError, 'Expected `observer` to be a `Promise::Observer`'
+    end
+
+    @observers ||= []
+    @observers.push(observer, on_fulfill_arg, on_reject_arg)
+  end
+
   protected
 
   # Override to defer calling the callback for Promises/A+ spec compliance
@@ -114,12 +161,19 @@ class Promise
     yield
   end
 
-  def add_callback(callback)
-    if pending?
-      @callbacks << callback
-      callback.source = self
+  def promise_fulfilled(value, on_fulfill)
+    if on_fulfill
+      settle_from_handler(value, &on_fulfill)
     else
-      dispatch!(callback)
+      fulfill(value)
+    end
+  end
+
+  def promise_rejected(reason, on_reject)
+    if on_reject
+      settle_from_handler(reason, &on_reject)
+    else
+      reject(reason)
     end
   end
 
@@ -135,21 +189,29 @@ class Promise
     reason
   end
 
-  def dispatch
-    if pending?
-      yield
-      @callbacks.each { |callback| dispatch!(callback) }
-      nil
+  def notify_fulfillment
+    defer do
+      @observers.each_slice(3) do |observer, on_fulfill_arg|
+        observer.promise_fulfilled(value, on_fulfill_arg)
+      end
+
+      @observers = nil
     end
   end
 
-  def dispatch!(callback)
+  def notify_rejection
     defer do
-      if fulfilled?
-        callback.fulfill(value)
-      else
-        callback.reject(reason)
+      @observers.each_slice(3) do |observer, _on_fulfill_arg, on_reject_arg|
+        observer.promise_rejected(reason, on_reject_arg)
       end
+
+      @observers = nil
     end
+  end
+
+  def settle_from_handler(value)
+    fulfill(yield(value))
+  rescue => ex
+    reject(ex)
   end
 end
