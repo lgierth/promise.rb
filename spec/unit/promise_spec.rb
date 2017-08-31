@@ -768,6 +768,53 @@ describe Promise do
         expect(subject.reason).to eq(reason)
         expect(p).to be_fulfilled
       end
+
+      it 'can not be called without a block' do
+        p1 = Promise.new
+
+        expect {
+          p1.rescue
+        }.to raise_error(ArgumentError, 'no block given')
+      end
+
+      it 'can be called with with a block not taking an error argument' do
+        p1 = Promise.new
+        p2 = p1.rescue { :foo }
+
+        p1.reject(RuntimeError.new('fail'))
+
+        expect(p2).to be_fulfilled
+        expect(p2.value).to equal(:foo)
+      end
+
+      it 'correctly handles error type subclasses' do
+        rescued = []
+
+        promise = Promise.new
+        promise.rescue(StandardError) do
+          rescued << StandardError
+        end
+        promise.rescue(RuntimeError) do
+          rescued << RuntimeError
+        end
+
+        promise.reject(RuntimeError.new('fail'))
+
+        expect(rescued).to eq([StandardError, RuntimeError])
+      end
+
+      it 'does not handle unspecified error types' do
+        p1 = Promise.new
+        p2 = p1.rescue(RuntimeError) { |error| raise 'fail' }
+        p3 = p2.rescue do |error|
+          expect(error).to be_an_instance_of(StandardError)
+          expect(error.message).to eq('testing')
+        end
+
+        p1.reject(StandardError.new('testing'))
+        expect(p2).to be_rejected
+        expect(p3).to be_fulfilled
+      end
     end
 
     describe '#catch' do
