@@ -71,12 +71,12 @@ class Promise
   end
 
   def rescue(*args)
-    raise ArgumentError, "no block given" unless block_given?
+    raise ArgumentError, 'no block given' unless block_given?
 
-    block = if args.empty?
-      Proc.new
+    if args.empty?
+      block = Proc.new
     else
-      lambda do |error|
+      block = lambda do |error|
         raise error unless args.any? { |error_class| error.is_a?(error_class) }
         yield error
       end

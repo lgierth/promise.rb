@@ -805,7 +805,7 @@ describe Promise do
 
       it 'does not handle unspecified error types' do
         p1 = Promise.new
-        p2 = p1.rescue(RuntimeError) { |error| raise 'fail' }
+        p2 = p1.rescue(RuntimeError) { raise 'fail' }
         p3 = p2.rescue do |error|
           expect(error).to be_an_instance_of(StandardError)
           expect(error.message).to eq('testing')
