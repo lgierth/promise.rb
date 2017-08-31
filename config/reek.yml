@@ -45,7 +45,7 @@ NestedIterators:
   enabled: true
   exclude: []
   max_allowed_nesting: 1
-  ignore_iterators: []
+  ignore_iterators: [lambda]
 NilCheck:
   enabled: true
   exclude: []
