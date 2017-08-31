@@ -70,16 +70,19 @@ class Promise
     next_promise
   end
 
-  def rescue(*args, &block)
-    if !args.empty?
-      self.then(nil, lambda do |error|
-        raise error unless args.any? { |error_class| error.is_a?(error_class) }
+  def rescue(*args)
+    raise ArgumentError, "no block given" unless block_given?
 
-        yield error
-      end)
+    block = if args.empty?
+      Proc.new
     else
-      self.then(nil, block)
+      lambda do |error|
+        raise error unless args.any? { |error_class| error.is_a?(error_class) }
+        yield error
+      end
     end
+
+    self.then(nil, block)
   end
   alias_method :catch, :rescue
 
