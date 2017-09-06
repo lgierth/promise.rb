@@ -46,6 +46,10 @@ class Promise
     coroutine.promise
   end
 
+  def self.await(promise)
+    Fiber.yield(promise)
+  end
+
   def initialize
     @state = :pending
   end
