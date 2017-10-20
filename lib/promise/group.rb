@@ -5,67 +5,71 @@ class Promise
     attr_accessor :source
     attr_reader :promise
 
-    def initialize(result_promise, inputs)
-      @promise = result_promise
-      @inputs = inputs
-      @remaining = count_promises
+    def initialize(promise, input)
+      @promise = promise
+      @input = input
 
-      if @remaining.zero?
-        promise.fulfill(inputs)
-      else
-        promise.source = self
-        chain_inputs
-      end
+      @total_count = nil
+      @resolved_count = 0
+
+      @values = @input.is_a?(Array) ? Array.new(@input.size) : []
+
+      iterate
     end
 
     def wait
-      each_promise do |input_promise|
-        input_promise.wait if input_promise.pending?
+      return if resolved?
+
+      @input.each do |obj|
+        obj.wait if obj.is_a?(Promise) && obj.pending?
       end
     end
 
-    def promise_fulfilled(_value = nil, _arg = nil)
-      @remaining -= 1
-      if @remaining.zero?
-        result = @inputs.map { |obj| promise?(obj) ? obj.value : obj }
-        promise.fulfill(result)
-      end
+    def promise_fulfilled(value, index)
+      @resolved_count += 1
+      @values[index] = value
+      fulfill if resolved?
     end
 
-    def promise_rejected(reason, _arg = nil)
+    def promise_rejected(reason, _index)
       promise.reject(reason)
     end
 
     private
 
-    def chain_inputs
-      each_promise do |input_promise|
-        case input_promise.state
-        when :fulfilled
-          promise_fulfilled
-        when :rejected
-          promise_rejected(input_promise.reason)
+    def fulfill
+      @promise.fulfill(@values)
+    end
+
+    def resolved?
+      @total_count && @total_count == @resolved_count
+    end
+
+    def iterate
+      index = 0
+
+      @input.each do |maybe_promise|
+        if maybe_promise.is_a?(Promise)
+          case maybe_promise.state
+          when :fulfilled
+            promise_fulfilled(maybe_promise.value, index)
+          when :rejected
+            return promise_rejected(maybe_promise.reason, index)
+          else
+            maybe_promise.subscribe(self, index, index)
+          end
         else
-          input_promise.subscribe(self, nil, nil)
+          promise_fulfilled(maybe_promise, index)
         end
+
+        index += 1
       end
-    end
 
-    def promise?(obj)
-      obj.is_a?(Promise)
-    end
+      @total_count = index
 
-    def count_promises
-      count = 0
-      each_promise { count += 1 }
-      count
-    end
-
-    def each_promise
-      @inputs.each do |obj|
-        yield obj if promise?(obj)
-      end
+      fulfill if resolved?
     end
   end
+
   private_constant :Group
 end
