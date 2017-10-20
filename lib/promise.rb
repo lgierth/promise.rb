@@ -5,6 +5,7 @@ require 'promise/version'
 require 'promise/observer'
 require 'promise/progress'
 require 'promise/group'
+require 'promise/mapping_group'
 
 class Promise
   Error = Class.new(RuntimeError)
@@ -23,6 +24,10 @@ class Promise
 
   def self.all(enumerable)
     Group.new(new, enumerable).promise
+  end
+
+  def self.map(enumerable, &block)
+    MappingGroup.new(new, enumerable, &block).promise
   end
 
   def self.map_value(obj)
