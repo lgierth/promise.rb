@@ -23,11 +23,11 @@ class Promise
   end
 
   def self.all(enumerable)
-    Group.new(new, enumerable).promise
+    Group.new(new, enumerable).perform
   end
 
   def self.map(enumerable, &block)
-    MappingGroup.new(new, enumerable, &block).promise
+    MappingGroup.new(new, enumerable, &block).perform
   end
 
   def self.map_value(obj)

@@ -1,9 +1,9 @@
 class Promise
   class MappingGroup < Group
-    def initialize(result_promise, inputs, &block)
-      @block = block
+    def initialize(result_promise, input, &block)
+      super(result_promise, input)
 
-      super(result_promise, inputs)
+      @block = block
     end
 
     def promise_fulfilled(value, index)

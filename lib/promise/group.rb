@@ -3,7 +3,6 @@ class Promise
     include Promise::Observer
 
     attr_accessor :source
-    attr_reader :promise
 
     def initialize(promise, input)
       @promise = promise
@@ -13,8 +12,6 @@ class Promise
       @resolved_count = 0
 
       @values = @input.is_a?(Array) ? Array.new(@input.size) : []
-
-      iterate
     end
 
     def wait
@@ -32,20 +29,10 @@ class Promise
     end
 
     def promise_rejected(reason, _index)
-      promise.reject(reason)
+      @promise.reject(reason)
     end
 
-    private
-
-    def fulfill
-      @promise.fulfill(@values)
-    end
-
-    def resolved?
-      @total_count && @total_count == @resolved_count
-    end
-
-    def iterate
+    def perform
       index = 0
 
       @input.each do |maybe_promise|
@@ -68,6 +55,18 @@ class Promise
       @total_count = index
 
       fulfill if resolved?
+
+      @promise
+    end
+
+    private
+
+    def fulfill
+      @promise.fulfill(@values)
+    end
+
+    def resolved?
+      @total_count && @total_count == @resolved_count
     end
   end
 
