@@ -6,13 +6,13 @@ class Promise
       @preserved_values = @values.dup
     end
 
-    protected
-
     def promise_fulfilled(value, index)
       @preserved_values[index] = value unless index.negative?
 
       super
     end
+
+    protected
 
     def fulfill
       result = []
