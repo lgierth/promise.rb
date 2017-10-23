@@ -1089,6 +1089,24 @@ describe Promise do
         expect(result.reason.message).to eq('fail')
       end
 
+      it 'correctly handles Promise subclasses' do
+        delayed = DelayedPromise.new
+        DelayedPromise.deferred << -> { delayed.fulfill(20) }
+
+        result = Promise.map([1, 2, 3]) do |x|
+          next delayed if x == 2
+
+          x + 1
+        end
+
+        expect(result).to be_pending
+
+        DelayedPromise.call_deferred
+
+        expect(result).to be_fulfilled
+        expect(result.value).to eq([2, 20, 4])
+      end
+
       it 'correctly handles delayed promise fulfillment' do
         delayed = Promise.new
         result = Promise.map([1, 2, 3]) do |x|
@@ -1129,10 +1147,22 @@ describe Promise do
         expect(result.sync).to eq([1, 3])
       end
 
-      it 'resolves to the result of mapping the given input using the given block (block returns promises)' do
+      it 'resolves to the result of filtering the given input using the given block (block returns promises)' do
         result = Promise.filter([1, 2, 3]) { |x| Promise.resolve(x.odd?) }
 
         expect(result.sync).to eq([1, 3])
+      end
+
+      it 'resolves to the result of filtering the given input using the given block (delayed promises)' do
+        p1 = Promise.new
+        p2 = Promise.new
+
+        result = Promise.filter([p1]) { p2 }
+
+        p1.fulfill(1)
+        p2.fulfill(true)
+
+        expect(result.sync).to eq([1])
       end
 
       it 'rejects if any block execution raises an error' do
@@ -1155,6 +1185,24 @@ describe Promise do
 
         expect(result).to be_rejected
         expect(result.reason.message).to eq('fail')
+      end
+
+      it 'correctly handles Promise subclasses' do
+        delayed = DelayedPromise.new
+        DelayedPromise.deferred << -> { delayed.fulfill(false) }
+
+        result = Promise.filter([1, 2, 3]) do |x|
+          next delayed if x == 2
+
+          x.odd?
+        end
+
+        expect(result).to be_pending
+
+        DelayedPromise.call_deferred
+
+        expect(result).to be_fulfilled
+        expect(result.value).to eq([1, 3])
       end
 
       it 'correctly handles delayed promise fulfillment' do

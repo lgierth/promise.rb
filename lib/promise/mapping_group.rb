@@ -12,7 +12,7 @@ class Promise
       maybe_promise = begin
         @block.call(value)
       rescue => error
-        return promise_rejected(error, index)
+        return promise_rejected(error)
       end
 
       return super(maybe_promise, index) unless maybe_promise.is_a?(Promise)
@@ -21,9 +21,9 @@ class Promise
       when :fulfilled
         super(maybe_promise.value, index)
       when :rejected
-        return promise_rejected(maybe_promise.reason, index)
+        return promise_rejected(maybe_promise.reason)
       else
-        maybe_promise.subscribe(self, ~index, ~index)
+        maybe_promise.subscribe(self, ~index, nil)
       end
     end
   end

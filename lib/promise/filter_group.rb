@@ -1,9 +1,9 @@
 class Promise
   class FilterGroup < MappingGroup
     def initialize(result_promise, input, &block)
-      super
+      super(result_promise, input, &block)
 
-      @preserved_values = @values.dup
+      @preserved_values = []
     end
 
     def promise_fulfilled(value, index)
@@ -17,8 +17,8 @@ class Promise
     def fulfill
       result = []
 
-      @preserved_values.each_with_index do |value, index|
-        result.push(value) if @values[index]
+      @preserved_values.zip(@values) do |value, check|
+        result.push(value) if check
       end
 
       @promise.fulfill(result)

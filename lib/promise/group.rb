@@ -9,15 +9,12 @@ class Promise
       @promise.source = self
 
       @input = input
-      @values = @input.is_a?(Array) ? Array.new(@input.size) : []
+      @values = []
 
-      @total_count = nil
       @resolved_count = 0
     end
 
     def wait
-      return if resolved?
-
       @input.each do |obj|
         obj.wait if obj.is_a?(Promise) && obj.pending?
       end
@@ -29,7 +26,7 @@ class Promise
       fulfill if resolved?
     end
 
-    def promise_rejected(reason, _index)
+    def promise_rejected(reason, _ = nil)
       @promise.reject(reason)
     end
 
@@ -42,9 +39,9 @@ class Promise
           when :fulfilled
             promise_fulfilled(maybe_promise.value, index)
           when :rejected
-            return promise_rejected(maybe_promise.reason, index)
+            return promise_rejected(maybe_promise.reason)
           else
-            maybe_promise.subscribe(self, index, index)
+            maybe_promise.subscribe(self, index, nil)
           end
         else
           promise_fulfilled(maybe_promise, index)
@@ -67,7 +64,7 @@ class Promise
     end
 
     def resolved?
-      @total_count && @total_count == @resolved_count
+      @total_count == @resolved_count
     end
   end
 
