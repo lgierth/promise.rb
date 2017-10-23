@@ -6,12 +6,13 @@ class Promise
 
     def initialize(promise, input)
       @promise = promise
+      @promise.source = self
+
       @input = input
+      @values = @input.is_a?(Array) ? Array.new(@input.size) : []
 
       @total_count = nil
       @resolved_count = 0
-
-      @values = @input.is_a?(Array) ? Array.new(@input.size) : []
     end
 
     def wait
