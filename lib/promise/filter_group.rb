@@ -7,7 +7,7 @@ class Promise
     end
 
     def promise_fulfilled(value, index)
-      @preserved_values[index] = value unless index.negative?
+      @preserved_values[index] = value unless index < 0
 
       super
     end

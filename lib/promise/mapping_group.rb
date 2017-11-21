@@ -7,7 +7,7 @@ class Promise
     end
 
     def promise_fulfilled(value, index)
-      return super(value, ~index) if index.negative?
+      return super(value, ~index) if index < 0
 
       maybe_promise = begin
         @block.call(value)
