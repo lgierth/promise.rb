@@ -41,7 +41,7 @@ AccessModifierIndentation:
 LineLength:
   Max: 79
   Exclude:
-    - 'spec/**'
+    - 'spec/**/*'
 
 # Disable documentation checking until a class needs to be documented once
 Documentation:
