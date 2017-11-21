@@ -1142,7 +1142,7 @@ describe Promise do
 
     describe '.filter' do
       it 'resolves to the result of filtering the given input using the given block (no promises)' do
-        result = Promise.filter([1, 2, 3]) { |x| x.odd? }
+        result = Promise.filter([1, 2, 3], &:odd?)
 
         expect(result.sync).to eq([1, 3])
       end
