@@ -1,3 +1,5 @@
+require 'fiber'
+
 class Promise
   def self.coroutine
     promise = new

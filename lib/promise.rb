@@ -1,7 +1,5 @@
 # encoding: utf-8
 
-require 'fiber'
-
 require 'promise/version'
 
 require 'promise/observer'
