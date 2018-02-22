@@ -7,7 +7,6 @@ require 'promise/version'
 require 'promise/observer'
 require 'promise/progress'
 require 'promise/group'
-require 'promise/coroutine'
 
 class Promise
   Error = Class.new(RuntimeError)
@@ -38,16 +37,6 @@ class Promise
 
   def self.sync(obj)
     obj.is_a?(Promise) ? obj.sync : obj
-  end
-
-  def self.coroutine(&block)
-    coroutine = Promise::Coroutine.new(new, Fiber.new(&block))
-    coroutine.promise_fulfilled(nil, nil)
-    coroutine.promise
-  end
-
-  def self.await(promise)
-    Fiber.yield(promise)
   end
 
   def initialize
