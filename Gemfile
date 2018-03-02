@@ -11,7 +11,7 @@ if Gem.ruby_version < Gem::Version.new('2.0')
   gem 'tins', '~> 1.6.0'
 end
 if Gem.ruby_version >= Gem::Version.new('2.1')
-  gem 'devtools', '~> 0.1.16'
+  gem 'devtools', '0.1.18'
 end
 
 gem 'awesome_print'
