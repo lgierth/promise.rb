@@ -1054,6 +1054,190 @@ describe Promise do
       end
     end
 
+    describe '.map' do
+      it 'resolves to the result of mapping the given input using the given block (no promises)' do
+        result = Promise.map([1, 2, 3]) { |x| x + 1 }
+
+        expect(result.sync).to eq([2, 3, 4])
+      end
+
+      it 'resolves to the result of mapping the given input using the given block (block returns promises)' do
+        result = Promise.map([1, 2, 3]) { |x| Promise.resolve(x + 1) }
+
+        expect(result.sync).to eq([2, 3, 4])
+      end
+
+      it 'rejects if any block execution raises an error' do
+        result = Promise.map([1, 2, 3]) do |x|
+          raise 'fail' if x == 2
+
+          x + 1
+        end
+
+        expect(result).to be_rejected
+        expect(result.reason.message).to eq('fail')
+      end
+
+      it 'rejects if any block execution returns a rejected promise' do
+        result = Promise.map([1, 2, 3]) do |x|
+          next Promise.new.reject(Exception.new('fail')) if x == 2
+
+          x + 1
+        end
+
+        expect(result).to be_rejected
+        expect(result.reason.message).to eq('fail')
+      end
+
+      it 'correctly handles Promise subclasses' do
+        delayed = DelayedPromise.new
+        DelayedPromise.deferred << -> { delayed.fulfill(20) }
+
+        result = Promise.map([1, 2, 3]) do |x|
+          next delayed if x == 2
+
+          x + 1
+        end
+
+        expect(result).to be_pending
+
+        DelayedPromise.call_deferred
+
+        expect(result).to be_fulfilled
+        expect(result.value).to eq([2, 20, 4])
+      end
+
+      it 'correctly handles delayed promise fulfillment' do
+        delayed = Promise.new
+        result = Promise.map([1, 2, 3]) do |x|
+          next delayed if x == 2
+
+          x + 1
+        end
+
+        expect(result).to be_pending
+
+        delayed.fulfill(20)
+
+        expect(result).to be_fulfilled
+        expect(result.value).to eq([2, 20, 4])
+      end
+
+      it 'correctly handles delayed promise rejection' do
+        delayed = Promise.new
+        result = Promise.map([1, 2, 3]) do |x|
+          next delayed if x == 2
+
+          x + 1
+        end
+
+        expect(result).to be_pending
+
+        delayed.reject(Exception.new('fail'))
+
+        expect(result).to be_rejected
+        expect(result.reason.message).to eq('fail')
+      end
+    end
+
+    describe '.filter' do
+      it 'resolves to the result of filtering the given input using the given block (no promises)' do
+        result = Promise.filter([1, 2, 3], &:odd?)
+
+        expect(result.sync).to eq([1, 3])
+      end
+
+      it 'resolves to the result of filtering the given input using the given block (block returns promises)' do
+        result = Promise.filter([1, 2, 3]) { |x| Promise.resolve(x.odd?) }
+
+        expect(result.sync).to eq([1, 3])
+      end
+
+      it 'resolves to the result of filtering the given input using the given block (delayed promises)' do
+        p1 = Promise.new
+        p2 = Promise.new
+
+        result = Promise.filter([p1]) { p2 }
+
+        p1.fulfill(1)
+        p2.fulfill(true)
+
+        expect(result.sync).to eq([1])
+      end
+
+      it 'rejects if any block execution raises an error' do
+        result = Promise.filter([1, 2, 3]) do |x|
+          raise 'fail' if x == 2
+
+          x.odd?
+        end
+
+        expect(result).to be_rejected
+        expect(result.reason.message).to eq('fail')
+      end
+
+      it 'rejects if any block execution returns a rejected promise' do
+        result = Promise.filter([1, 2, 3]) do |x|
+          next Promise.new.reject(Exception.new('fail')) if x == 2
+
+          x.odd?
+        end
+
+        expect(result).to be_rejected
+        expect(result.reason.message).to eq('fail')
+      end
+
+      it 'correctly handles Promise subclasses' do
+        delayed = DelayedPromise.new
+        DelayedPromise.deferred << -> { delayed.fulfill(false) }
+
+        result = Promise.filter([1, 2, 3]) do |x|
+          next delayed if x == 2
+
+          x.odd?
+        end
+
+        expect(result).to be_pending
+
+        DelayedPromise.call_deferred
+
+        expect(result).to be_fulfilled
+        expect(result.value).to eq([1, 3])
+      end
+
+      it 'correctly handles delayed promise fulfillment' do
+        delayed = Promise.new
+        result = Promise.filter([1, 2, 3]) do |x|
+          next delayed if x == 2
+
+          x.odd?
+        end
+
+        expect(result).to be_pending
+
+        delayed.fulfill(false)
+
+        expect(result).to be_fulfilled
+        expect(result.value).to eq([1, 3])
+      end
+
+      it 'correctly handles delayed promise rejection' do
+        delayed = Promise.new
+        result = Promise.filter([1, 2, 3]) do |x|
+          next delayed if x == 2
+
+          x.odd?
+        end
+
+        expect(result).to be_pending
+
+        delayed.reject(Exception.new('fail'))
+
+        expect(result).to be_rejected
+        expect(result.reason.message).to eq('fail')
+      end
+    end
+
     describe '.map_value' do
       it "yields the argument directly if it isn't a promise" do
         p = Promise.map_value(2) { |v| v + 1 }

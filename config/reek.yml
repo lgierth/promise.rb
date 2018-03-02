@@ -24,6 +24,7 @@ DuplicateMethodCall:
   max_calls: 1
   allow_calls:
   - source.backtrace
+  - ~index
 FeatureEnvy:
   enabled: false
   exclude: []
