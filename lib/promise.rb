@@ -55,7 +55,7 @@ class Promise
 
   def then(on_fulfill = nil, on_reject = nil, &block)
     on_fulfill ||= block
-    next_promise = self.class.new
+    next_promise = spawn
 
     case state
     when :fulfilled
@@ -155,6 +155,20 @@ class Promise
   end
 
   protected
+
+  # Spawn a new Promise.
+  #
+  # This method is called by `#then` to create a new Promise.
+  #
+  # The default implementation returns a new instance of the same
+  # class as the promise on which `#then` was called. This can be overridden
+  # by subclasses to return promise instances of a different class to be used
+  # for chaining.
+  #
+  # @return [Promise]
+  def spawn
+    self.class.new
+  end
 
   # Override to defer calling the callback for Promises/A+ spec compliance
   def defer
