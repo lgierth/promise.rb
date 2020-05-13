@@ -1,14 +1,13 @@
 sudo: false
 language: ruby
 rvm:
-  - 1.9
-  - 2.0
-  - 2.1
-  - 2.2
-  - 2.4
+  - 1.9 # minimum tested
+  - 2.0 # maximum tested without devtools
+  - 2.2 # minimum tested with devtools
+  - 2.7 # latest release
   - jruby
 matrix:
   fast_finish: true
 before_install:
-  - gem install bundler
+  - gem install bundler -v 1.17.3
 script: bundle exec rake -t

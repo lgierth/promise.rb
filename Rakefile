@@ -12,7 +12,6 @@ if Gem.ruby_version >= Gem::Version.new('2.2')
     spec:integration
   ]
   tasks << 'metrics:coverage' unless RUBY_ENGINE == 'rbx'
-  tasks << 'metrics:mutant' if RUBY_ENGINE == 'ruby'
   task :default => tasks
 else
   require 'rspec/core/rake_task'

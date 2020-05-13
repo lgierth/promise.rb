@@ -22,5 +22,5 @@ require_relative 'support/delayed_promise'
 require_relative 'support/promise_loader'
 
 require 'awesome_print'
-require 'devtools/spec_helper' if Gem.ruby_version >= Gem::Version.new('2.1')
+require 'devtools/spec_helper' if Gem.ruby_version >= Gem::Version.new('2.2')
 require 'rspec/its'
