@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative './setup.rb'
+require_relative './setup'
 
 PromiseBenchmark.profile_memory do
   Promise.all([

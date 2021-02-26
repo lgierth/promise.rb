@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 require 'promise/version'
 
@@ -18,6 +18,7 @@ class Promise
 
   def self.resolve(obj = nil)
     return obj if obj.is_a?(self)
+
     new.tap { |promise| promise.fulfill(obj) }
   end
 
@@ -25,9 +26,9 @@ class Promise
     Group.new(new, enumerable).promise
   end
 
-  def self.map_value(obj)
+  def self.map_value(obj, &block)
     if obj.is_a?(Promise)
-      obj.then { |value| yield value }
+      obj.then(&block)
     else
       yield obj
     end
@@ -73,7 +74,7 @@ class Promise
   def rescue(&block)
     self.then(nil, block)
   end
-  alias_method :catch, :rescue
+  alias catch rescue
 
   def sync
     if pending?
@@ -81,6 +82,7 @@ class Promise
       raise BrokenError if pending?
     end
     raise reason if rejected?
+
     value
   end
 
@@ -146,9 +148,7 @@ class Promise
   def subscribe(observer, on_fulfill_arg, on_reject_arg)
     raise Error, 'Non-pending promises can not be observed' unless pending?
 
-    unless observer.is_a?(Observer)
-      raise ArgumentError, 'Expected `observer` to be a `Promise::Observer`'
-    end
+    raise ArgumentError, 'Expected `observer` to be a `Promise::Observer`' unless observer.is_a?(Observer)
 
     @observers ||= []
     @observers.push(observer, on_fulfill_arg, on_reject_arg)
@@ -211,7 +211,7 @@ class Promise
 
   def settle_from_handler(value)
     fulfill(yield(value))
-  rescue => ex
-    reject(ex)
+  rescue StandardError => e
+    reject(e)
   end
 end

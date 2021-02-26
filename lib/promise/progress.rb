@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 class Promise
   module Progress
@@ -9,9 +9,7 @@ class Promise
     end
 
     def progress(status)
-      if pending?
-        on_progress.each { |block| block.call(status) }
-      end
+      on_progress.each { |block| block.call(status) } if pending?
     end
   end
 end

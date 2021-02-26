@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 source 'https://rubygems.org'
 
@@ -10,3 +10,5 @@ group :test do
   gem 'rspec', '>= 3.10.0'
   gem 'rspec-its'
 end
+
+gem 'rubocop', '~> 1.10', require: false

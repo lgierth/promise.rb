@@ -1,10 +1,10 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new(:spec)
-task :default => :spec
+task default: :spec
 
-desc "Run the benchmark suite in benchmark/run.rb"
+desc 'Run the benchmark suite in benchmark/run.rb'
 task :benchmark do
-  require "./benchmark/run.rb"
+  require './benchmark/run'
 end

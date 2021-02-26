@@ -9,14 +9,14 @@ module PromiseBenchmark
   module_function
 
   # Pass a block which will be benchmarked
-  def benchmark
-    Benchmark.ips { |x| yield(x) }
-    Benchmark.memory { |x| yield(x) }
+  def benchmark(&block)
+    Benchmark.ips(&block)
+    Benchmark.memory(&block)
   end
 
   # Pass a block which will be profiled for memory usage
-  def profile_memory
-    report = MemoryProfiler.report { yield }
+  def profile_memory(&block)
+    report = MemoryProfiler.report(&block)
     report.pretty_print
   end
 end

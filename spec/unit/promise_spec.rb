@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 require 'spec_helper'
 
@@ -697,9 +697,9 @@ RSpec.describe Promise do
       observer = Class.new { include Promise::Observer }.new
 
       expected_message = 'Non-pending promises can not be observed'
-      expect {
+      expect do
         promise.subscribe(observer, :fulfill_arg, :reject_arg)
-      }.to raise_error(Promise::Error, expected_message)
+      end.to raise_error(Promise::Error, expected_message)
     end
 
     it 'fails when called on a rejected promise' do
@@ -709,9 +709,9 @@ RSpec.describe Promise do
       observer = Class.new { include Promise::Observer }.new
 
       expected_message = 'Non-pending promises can not be observed'
-      expect {
+      expect do
         promise.subscribe(observer, :fulfill_arg, :reject_arg)
-      }.to raise_error(Promise::Error, expected_message)
+      end.to raise_error(Promise::Error, expected_message)
     end
 
     it 'fails when the given observer is not a `Promise::Observer`' do
@@ -720,9 +720,9 @@ RSpec.describe Promise do
       observer = Object.new
 
       expected_message = 'Expected `observer` to be a `Promise::Observer`'
-      expect {
+      expect do
         promise.subscribe(observer, :fulfill_arg, :reject_arg)
-      }.to raise_error(ArgumentError, expected_message)
+      end.to raise_error(ArgumentError, expected_message)
     end
   end
 
@@ -812,7 +812,7 @@ RSpec.describe Promise do
       it 'sets the backtrace' do
         subject.reject
         expect(subject.reason.backtrace.join)
-          .to include(__FILE__ + ':' + (__LINE__ - 2).to_s)
+          .to include("/usr/src/spec/unit/promise_spec.rb:#{__LINE__ - 2}")
       end
 
       it 'leaves backtrace if already set' do
@@ -1050,7 +1050,7 @@ RSpec.describe Promise do
 
         result = Promise.all([p1, p2])
 
-        expect(result.sync).to eq([:one, :two])
+        expect(result.sync).to eq(%i[one two])
       end
     end
 

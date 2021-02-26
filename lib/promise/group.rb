@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Promise
   class Group
     include Promise::Observer

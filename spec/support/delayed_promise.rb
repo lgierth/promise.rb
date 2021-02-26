@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class DelayedPromise < Promise
   BrokenPromise = Class.new(StandardError)
 

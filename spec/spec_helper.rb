@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 require 'promise'
 require_relative 'support/delayed_promise'

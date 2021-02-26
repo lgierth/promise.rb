@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Promise
   # The `Promise::Observer` module allows an object to be
   # notified of `Promise` state changes.
