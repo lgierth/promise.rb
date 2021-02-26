@@ -28,10 +28,10 @@ class Promise
 
     def promise_fulfilled(_value = nil, _arg = nil)
       @remaining -= 1
-      if @remaining.zero?
-        result = @inputs.map { |obj| promise?(obj) ? obj.value : obj }
-        promise.fulfill(result)
-      end
+      return unless @remaining.zero?
+
+      result = @inputs.map { |obj| promise?(obj) ? obj.value : obj }
+      promise.fulfill(result)
     end
 
     def promise_rejected(reason, _arg = nil)

@@ -1,0 +1,22 @@
+inherit_mode:
+  merge:
+    - Include
+
+AllCops:
+  NewCops: disable
+  TargetRubyVersion: 2.5
+  SuggestExtensions: false
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+    - 'benchmark/**/*'

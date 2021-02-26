@@ -14,6 +14,8 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/lgierth/promise'
   spec.license       = 'Public Domain'
 
+  spec.required_ruby_version = '>= 2.5'
+
   spec.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
   spec.test_files    = spec.files.grep(%r{^spec/})
   spec.require_paths = ['lib']
