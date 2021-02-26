@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Promise do
+RSpec.describe Promise do
   subject { Promise.new }
 
   let(:value) { double('value') }
