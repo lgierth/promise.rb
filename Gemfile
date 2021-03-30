@@ -11,8 +11,3 @@ gem 'fuubar', '~> 2.0.0'
 gem 'rake'
 gem 'rspec', '~> 3.5'
 gem 'rspec-its'
-
-platform :rbx do
-  gem 'rubinius', '~> 2.0'
-  gem 'rubysl', '~> 2.0'
-end

@@ -11,7 +11,6 @@ if Gem.ruby_version >= Gem::Version.new('2.2')
     metrics:reek
     spec:integration
   ]
-  tasks << 'metrics:coverage' unless RUBY_ENGINE == 'rbx'
   tasks << 'metrics:mutant' if RUBY_ENGINE == 'ruby'
   task :default => tasks
 else
