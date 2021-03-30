@@ -25,11 +25,18 @@ class Promise
     Group.new(new, enumerable).promise
   end
 
-  def self.map_value(obj)
-    if obj.is_a?(Promise)
+  if Gem.ruby_version >= Gem::Version.new('2.6.0')
+    # @deprecated Use {Object#then} instead
+    def self.map_value(obj)
       obj.then { |value| yield value }
-    else
-      yield obj
+    end
+  else
+    def self.map_value(obj)
+      if obj.is_a?(Promise)
+        obj.then { |value| yield value }
+      else
+        yield obj
+      end
     end
   end
 
