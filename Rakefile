@@ -7,8 +7,6 @@ if Gem.ruby_version >= Gem::Version.new('2.2')
   tasks = %w[
     metrics:yardstick:verify
     metrics:rubocop
-    metrics:flog
-    metrics:reek
     spec:integration
   ]
   tasks << 'metrics:mutant' if RUBY_ENGINE == 'ruby'
