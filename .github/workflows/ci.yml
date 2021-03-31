@@ -15,7 +15,8 @@ jobs:
       matrix:
         ruby:
           - '2.1.9' # earliest supported by ruby/setup-ruby
-          - '2.5.8' # latest passing mutation tests, will fix in a follow-up PR
+          - '2.6.0' # test Promise.map_value ruby version condition
+          - '2.7.2' # latest passing on CI, will update to 3.0.0 in a follow-up PR
           - 'jruby'
 
     steps:
