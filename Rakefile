@@ -5,7 +5,6 @@ if Gem.ruby_version >= Gem::Version.new('2.2')
   Devtools.init_rake_tasks
 
   tasks = %w[
-    metrics:yardstick:verify
     metrics:rubocop
     spec:integration
   ]
