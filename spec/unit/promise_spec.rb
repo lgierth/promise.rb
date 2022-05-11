@@ -800,7 +800,7 @@ describe Promise do
     end
 
     describe '#reject' do
-      it 'returns itself for easy chaning' do
+      it 'returns itself for easy chaining' do
         expect(subject.reject(nil)).to be(subject)
       end
 
