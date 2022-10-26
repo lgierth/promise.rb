@@ -55,7 +55,7 @@ class MyPromise < Promise
 end
 ```
 
-Now you can create MyPromise objects, and fullfil (or reject) them, as well as
+Now you can create MyPromise objects, and fulfill (or reject) them, as well as
 add callbacks to them:
 
 ```ruby
@@ -142,7 +142,7 @@ end
 
 As per the A+ spec, every call to `#then` returns a new promise, which assumes
 the first promise's state. That means it passes its `#fulfill` and `#reject`
-methods to first promise's `#then`, shortcircuiting the two promises. In case
+methods to first promise's `#then`, short-circuiting the two promises. In case
 a callback returns a promise, it'll instead assume that promise's state.
 
 Imagine the `#fulfill` and `#reject` calls in the following example happening
