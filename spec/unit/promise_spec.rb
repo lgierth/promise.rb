@@ -727,6 +727,66 @@ describe Promise do
   end
 
   describe 'extras' do
+    describe '#tap' do
+      it 'returns a new promise' do
+        p = Promise.resolve(:foobar)
+        p2 = p.tap { nil }
+
+        expect(p2).to be_a(Promise)
+        expect(p2).not_to equal(p)
+      end
+
+      it 'resolves the new promise to the same value' do
+        p = Promise.resolve(:foobar).tap { :foobaz }
+
+        expect(p).to be_fulfilled
+        expect(p.value).to eq(:foobar)
+      end
+
+      it 'waits for a returned promise to be resolved' do
+        p = Promise.new
+        p2 = Promise.resolve(:foobar).tap { p }
+
+        expect(p2).to be_pending
+
+        p.fulfill(:foobaz)
+
+        expect(p2).to be_fulfilled
+        expect(p2.value).to eq(:foobar)
+      end
+
+      it 'rejects if block raises an error' do
+        error = RuntimeError.new('fail')
+        p = Promise.resolve(:foobar).tap { raise error }
+
+        expect(p).to be_rejected
+        expect(p.reason).to eq(error)
+      end
+
+      it 'rejects if returned promise is rejected' do
+        p = Promise.new
+        p2 = Promise.resolve(:foobar).tap { p }
+
+        expect(p2).to be_pending
+
+        error = RuntimeError.new('fail')
+        p.reject(error)
+
+        expect(p2).to be_rejected
+        expect(p2.reason).to eq(error)
+      end
+
+      it 'can be called without a block' do
+        p = Promise.resolve(:foobar)
+        p2 = p.tap
+
+        expect(p2).to be_a(Promise)
+        expect(p2).not_to equal(p)
+        expect(p2).to be_fulfilled
+        expect(p2.value).to eq(:foobar)
+      end
+    end
+
     describe '#rescue' do
       it 'provides an on_reject callback' do
         result = nil
@@ -864,9 +924,9 @@ describe Promise do
       it 'waits for source that is fulfilled with a promise' do
         PromiseLoader.lazy_load(subject) { subject.fulfill(1) }
         p2 = subject.then do |v|
-          Promise.new.tap do |p3|
-            PromiseLoader.lazy_load(p3) { p3.fulfill(v + 1) }
-          end
+          p3 = Promise.new
+          PromiseLoader.lazy_load(p3) { p3.fulfill(v + 1) }
+          p3
         end
         expect(p2).to be_pending
         expect(p2.sync).to eq(2)
